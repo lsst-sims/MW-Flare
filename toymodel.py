@@ -67,7 +67,7 @@ def run_field(file):
     '''
     for this TRILEGAL field:
     - generate a cadence model
-    - for every star generate simulated flares
+    - for every star generate simulated flares as a function of color (mass) and age, based on in prep work
 
     '''
 
