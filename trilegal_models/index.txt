@@ -2,8 +2,8 @@
 # http://stev.oapd.inaf.it/cgi-bin/trilegal_1.6
 #
 # file, l, b, fov, photlimit
-output758585550895.dat, 45, -10, 3.5, 28
+output574523944248.dat, 45, -10, 3.5, 28
 output261611164854.dat, 45, -20, 3.5, 28
-output886384659054.dat, 45, -40, 3.5, 28
+output164538496014.dat, 45, -40, 3.5, 28
 output208849261588.dat, 45, -60, 3.5, 28
 output208849261588.dat, 45, -80, 3.5, 28
