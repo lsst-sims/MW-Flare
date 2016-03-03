@@ -48,9 +48,9 @@ def SuperLC(ffd_alpha=1, ffd_beta=-1, dur=1):
 
     f_energies = _randomp(Nflares, slope=ffd_beta, min=10**ffd_min, max=10**ffd_max)
 
-    # make some REALLY BAD conversions from event energy to FWHM and Amplitude
-    fwhm = np.log10(f_energies/1e3)
-    ampl = f_energies/1e3
+    # make some REALLY BAD assumptions from event energy to FWHM and Amplitude
+    fwhm = (10**((np.log10(f_energies) + 0.5) / 1.5)) / 24. / 60.
+    ampl = f_energies/1e1
 
 
     # put flares at random places throughout light curve
