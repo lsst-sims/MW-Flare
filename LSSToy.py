@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def generate_visits(Nvisits=900, tspan=10, stat=False,
@@ -42,3 +43,20 @@ def generate_visits(Nvisits=900, tspan=10, stat=False,
         plt.show()
 
     return date_obs
+
+
+def photerror(mag, nfloor=0.005, m5=24.89, gamma=0.038):
+    '''
+    http://arxiv.org/pdf/0805.2366v4.pdf
+    use values from Ivezic 2008, assuming g-band
+    '''
+
+    x = 10.0**(mag - m5)
+    sigrand2 = (0.04 - gamma) * x + gamma * (x**2.0)
+
+    err = (nfloor**2. + sigrand2)**0.5
+    return err
+
+
+if __name__ == "__main__":
+    generate_visits(stat=True)
