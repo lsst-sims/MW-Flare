@@ -11,7 +11,7 @@ applicable to a zillion sparsely sampled light curves with ease.
 
 
 import numpy as np
-import aflare
+import aflare # flare morphology (Davenport et al. 2014)
 import matplotlib.pyplot as plt
 
 
@@ -22,21 +22,22 @@ def _randomp(num, slope=-2, min=0.1, max=10.):
     return p
 
 
-def SuperLC(ffd_alpha=1, ffd_beta=-1, dur=1):
+def SuperLC(ffd_alpha=1, ffd_beta=-1, dur=1.0, repeat=0, mag=False,
+            display=False):
     '''
     generate a super-sampled (1-minute) light curve of flares for the duration
 
     FFD fit must be in log(cumulative # / day) _versus_ log(Equiv Dur)
 
-    ffd_beta = slope
-    ffd_alpha = intercept
+    ffd_beta = slope, should be negative
+    ffd_alpha = intercept, sets the overall rate
     dur = duration in years
+    repeat: how many times to replicate the data, saves computation time
     '''
 
     dt = 1. / 24. / 60. # 1 minute sampling, in units of days
 
     time = np.arange(0, dur * 365., dt)
-    flux = np.zeros_like(time) # a blank array of fluxes
 
     # log ED limits:
     ffd_min = -2
@@ -56,17 +57,55 @@ def SuperLC(ffd_alpha=1, ffd_beta=-1, dur=1):
     # put flares at random places throughout light curve
     t_peak = np.random.random(Nflares) * (dur * 365)
 
+    flux = np.zeros_like(time) # a blank array of fluxes
     for k in range(0, int(Nflares)):
         flux = flux + aflare.aflare1(time, t_peak[k], fwhm[k], ampl[k])
+    #
 
-    plt.figure()
-    plt.plot(time, flux)
-    plt.show()
+    if repeat > 0:
+        tout = time
+        for i in range(1,repeat):
+            tout = np.hstack((tout, time + max(tout)))
+        time = tout
+        flux = np.tile(flux, repeat)
 
-    return flux
+    if mag is True:
+        flux = -2.5 * np.log10(flux + 1.0)
+
+    if display is True:
+        plt.figure()
+        plt.plot(time, flux)
+        plt.xlabel('Time (days)')
+        plt.ylabel('Flux')
+        plt.show()
+
+    return time, flux
 
 
-def CDist(num=10):
+def setalpha(gi, logage):
+    '''
+    This encodes the really tough stuff from my work, which isn't done yet...
+        how to set the flare rate amplitude as a function of a star's mass and age!
+
+    Importantly: This "surface" is currently unknown!
+
+    use g-i color instead of mass or temperature. assume main sequence, of course.
+
+    for starting, use a flat surface polynomial over color and log(age) of the form
+    alpha = k*color + j*logage + b
+    '''
+
+    # WARNING: these numbers are totally made up
+    k = -0.1 # change in alpha as function of color
+    j = -0.5 # change in alpha as function of log(age)
+    b = 1.0 # baseline value of alpha
+
+    alpha = k*gi + j*logage + b
+
+    return alpha
+
+
+def CDist(num=4):
     '''
     For a range of FFD amplitudes (holding the slope fixed)
     - Generate their super-sampled LC's
@@ -77,12 +116,29 @@ def CDist(num=10):
     '''
 
 
-    ffd_intercept = np.logspace(-3, 3, num=num)
+    ffd_intercept = np.logspace(-3, 0, num=num)
+
+
+    plt.figure()
 
     for k in range(0, num):
-        lc = SuperLC(ffd_b=ffd_intercept[k])
+        print(k)
+
+        lc = SuperLC(ffd_alpha=ffd_intercept[k], dur=0.1)
         lc.sort()
 
+        frac = np.arange(0, len(lc))/ float(len(lc))
+        plt.plot(lc, frac)
 
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xlabel('Delta Flux Value')
+    plt.ylabel('Fraction of Time')
+    plt.show()
 
     return
+
+
+if __name__ == "__main__":
+    # CDist()
+    SuperLC(dur=0.1, repeat=1, display=True, mag=True)
