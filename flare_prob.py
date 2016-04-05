@@ -141,4 +141,4 @@ def CDist(num=4):
 
 if __name__ == "__main__":
     # CDist()
-    SuperLC(dur=0.1, repeat=1, display=True, mag=True)
+    SuperLC(dur=0.1, repeat=1, display=True, mag=False)

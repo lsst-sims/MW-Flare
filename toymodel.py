@@ -15,14 +15,26 @@ Things I'll need:
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
-# flare morphology, taken from "appaloosa" (Davenport 2014)
-import aflare
-
-from LSSToy import generate_visits
+import LSSToy
+import flare_prob
 
 
-def run_field(file):
+def downsample(time,flux):
+    '''
+    take super-sampled LC (from flare_prob), uses simple linear interpretation
+    to down-sample to LSST cadence.
+
+    Assumes 10 years of LSST with 900 visits
+    '''
+
+    tout = LSSToy.generate_visits()
+
+    fout = np.interp(tout, time, flux)
+
+    return tout, fout
+
+
+def run_field(file, ):
     '''
     for this TRILEGAL field:
     - generate a cadence model
@@ -30,7 +42,15 @@ def run_field(file):
 
     '''
 
-    df = pd.read_table(file)
+    if file is 'test':
+        print('Doing a sweep of alpha values [0.01, 0.1, 1]')
+
+        alpha = [0.01, 0.1, 1.0]
+        traw, fraw = flare_prob.SuperLC(dur=0.1, repeat=100, ffd_alpha=0.1)
+        time, flux = downsample(traw, fraw)
+
+    else:
+        df = pd.read_table(file)
 
     return
 
@@ -47,4 +67,5 @@ def all_fields(models='index.txt'):
 
 
 if __name__ == "__main__":
-    all_fields()
+    # all_fields()
+    run_field('test')
