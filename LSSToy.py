@@ -51,7 +51,7 @@ def photerror(mag, nfloor=0.005, m5=24.89, gamma=0.038):
     use values from Ivezic 2008, assuming g-band
     '''
 
-    x = 10.0**(mag - m5)
+    x = 10.0**(0.4*(mag - m5))
     sigrand2 = (0.04 - gamma) * x + gamma * (x**2.0)
 
     err = (nfloor**2. + sigrand2)**0.5
