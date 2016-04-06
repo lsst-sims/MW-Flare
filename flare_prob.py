@@ -22,8 +22,8 @@ def _randomp(num, slope=-2, min=0.1, max=10.):
     return p
 
 
-def SuperLC(ffd_alpha=1, ffd_beta=-1, dur=1.0, repeat=0, mag=False,
-            display=False):
+def SuperLC(ffd_alpha=1.0, ffd_beta=-1.0, dur=1.0, repeat=0, mag=False,
+            display=False, ffd_min=0, ffd_max=5):
     '''
     generate a super-sampled (1-minute) light curve of flares for the duration
 
@@ -33,21 +33,20 @@ def SuperLC(ffd_alpha=1, ffd_beta=-1, dur=1.0, repeat=0, mag=False,
     ffd_alpha = intercept, sets the overall rate
     dur = duration in years
     repeat: how many times to replicate the data, saves computation time
+
+    # log ED limits: ffd_min, ffd_max
     '''
 
     dt = 1. / 24. / 60. # 1 minute sampling, in units of days
 
     time = np.arange(0, dur * 365., dt)
 
-    # log ED limits:
-    ffd_min = -2
-    ffd_max = 4
 
     # to calc the # flares, evaluate the FFD @ the minimum energy,
     # then multiply by the total duration in days
-    Nflares = (np.power(10., ffd_min*ffd_beta + ffd_alpha)) * (dur * 365)
+    Nflares = (np.power(10.0, ffd_min*ffd_beta + ffd_alpha)) * (dur * 365.0)
 
-    f_energies = _randomp(Nflares, slope=ffd_beta, min=10**ffd_min, max=10**ffd_max)
+    f_energies = _randomp(Nflares, slope=ffd_beta, min=10.0**ffd_min, max=10.0**ffd_max)
 
     # make some REALLY BAD assumptions from event energy to FWHM and Amplitude
     fwhm = (10**((np.log10(f_energies) + 0.5) / 1.5)) / 24. / 60.
