@@ -63,10 +63,10 @@ def SuperLC(ffd_alpha=1.0, ffd_beta=-1.0, dur=1.0, repeat=0, mag=False,
 
     if repeat > 0:
         tout = time
-        for i in range(1,repeat):
+        for i in range(1,int(repeat)):
             tout = np.hstack((tout, time + max(tout)))
         time = tout
-        flux = np.tile(flux, repeat)
+        flux = np.tile(flux, int(repeat))
 
     if mag is True:
         flux = -2.5 * np.log10(flux + 1.0)
