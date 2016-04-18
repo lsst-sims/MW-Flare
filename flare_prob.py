@@ -22,7 +22,7 @@ def _randomp(num, slope=-2, min=0.1, max=10.):
     return p
 
 
-def SuperLC(ffd_alpha=1.0, ffd_beta=-1.0, dur=1.0, repeat=0, mag=False,
+def SuperLC(ffd_alpha=1.0, ffd_beta=-2.0, dur=1.0, repeat=0, mag=False,
             display=False, ffd_min=0, ffd_max=5):
     '''
     generate a super-sampled (1-minute) light curve of flares for the duration
@@ -39,7 +39,7 @@ def SuperLC(ffd_alpha=1.0, ffd_beta=-1.0, dur=1.0, repeat=0, mag=False,
 
     dt = 1. / 24. / 60. # 1 minute sampling, in units of days
 
-    time = np.arange(0, dur * 365., dt)
+    time = np.arange(0., dur * 365., dt)
 
 
     # to calc the # flares, evaluate the FFD @ the minimum energy,
