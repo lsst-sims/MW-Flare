@@ -30,7 +30,7 @@ def SuperLC(ffd_alpha=1.0, ffd_beta=-2.0, dur=1.0, repeat=0, mag=False,
     FFD fit must be in log(cumulative # / day) _versus_ log(Equiv Dur)
 
     ffd_beta = slope, should be negative
-    ffd_alpha = intercept, sets the overall rate
+    ffd_alpha = intercept, sets the overall rate (log #, e.g. 1.0, -2.0)
     dur = duration in years
     repeat: how many times to replicate the data, saves computation time
 
