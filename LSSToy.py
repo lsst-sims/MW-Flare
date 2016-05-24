@@ -49,6 +49,8 @@ def photerror(mag, nfloor=0.005, m5=24.89, gamma=0.038):
     '''
     http://arxiv.org/pdf/0805.2366v4.pdf
     use values from Ivezic 2008, assuming g-band
+
+    gamma is very insensitive to filter
     '''
 
     x = 10.0**(0.4*(mag - m5))
@@ -56,6 +58,21 @@ def photerror(mag, nfloor=0.005, m5=24.89, gamma=0.038):
 
     err = (nfloor**2. + sigrand2)**0.5
     return err
+
+
+def downsample(time,flux):
+    '''
+    take super-sampled LC (from flare_prob), uses simple linear interpretation
+    to down-sample to LSST cadence.
+
+    Assumes 10 years of LSST with 900 visits
+    '''
+
+    tout = generate_visits()
+
+    fout = np.interp(tout, time, flux)
+
+    return tout, fout
 
 
 if __name__ == "__main__":
