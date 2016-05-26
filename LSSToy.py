@@ -75,5 +75,51 @@ def downsample(time,flux):
     return tout, fout
 
 
+def opsim_cadence(time, flux, mag, los, random=True):
+    '''
+    Instead of my LSST Toy Model for cadence, use the OpSim inputs Ruth provided.
+    Assume u- and g-band are usable
+
+    los = the latitude, from -10 to -80
+    time, flux = the super-sampled Kepler-like light curve
+    mag = the apparent mag of the target star
+
+    random = True means pick random places within the super-sampled light curve
+        Use this because I only made 6 super-sampled light curves, and every star will have
+        same flare properties based on timestamp
+    '''
+
+    dir = 'cadence_files/'
+    ufile = 'l45b' + str(int(los)) + '.0_u_cadence.txt'
+    gfile = 'l45b' + str(int(los)) + '.0_g_cadence.txt'
+
+    tu, mu = np.loadtxt(dir + ufile, dtype='float', unpack=True)
+    tg, mg = np.loadtxt(dir + gfile, dtype='float', unpack=True)
+
+    u2g = 2.0  # ratio of u-band to g-band flare flux (ad hoc)
+    sclu = np.ones_like(tu) * u2g
+    sclg = np.ones_like(tg)
+
+    tout = np.concatenate((tu, tg))
+    m5 = np.concatenate((mu, mg))
+    scl = np.concatenate((sclu, sclg))
+
+    ss = np.argsort(tout)
+    tout = tout[ss]
+    m5 = m5[ss]
+    scl = scl[ss]
+
+    if random is True:
+        time2 = np.random.choice(time, len(time))
+    else:
+        time2=time
+
+    fout = np.interp(tout, time2, flux)
+
+    err = photerror(mag, m5=m5)
+
+    return tout, fout, err, scl
+
+
 if __name__ == "__main__":
     generate_visits(stat=True)

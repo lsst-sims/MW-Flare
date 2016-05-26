@@ -81,27 +81,27 @@ def SuperLC(ffd_alpha=1.0, ffd_beta=-2.0, dur=1.0, repeat=0, mag=False,
     return time, flux
 
 
-def setalpha(gi, logage):
-    '''
-    This encodes the really tough stuff from my work, which isn't done yet...
-        how to set the flare rate amplitude as a function of a star's mass and age!
-
-    Importantly: This "surface" is currently unknown!
-
-    use g-i color instead of mass or temperature. assume main sequence, of course.
-
-    for starting, use a flat surface polynomial over color and log(age) of the form
-    alpha = k*color + j*logage + b
-    '''
-
-    # WARNING: these numbers are totally made up
-    k = -0.1 # change in alpha as function of color
-    j = -0.5 # change in alpha as function of log(age)
-    b = 1.0 # baseline value of alpha
-
-    alpha = k*gi + j*logage + b
-
-    return alpha
+# def setalpha(gi, logage):
+#     '''
+#     This encodes the really tough stuff from my work, which isn't done yet...
+#         how to set the flare rate amplitude as a function of a star's mass and age!
+#
+#     Importantly: This "surface" is currently unknown!
+#
+#     use g-i color instead of mass or temperature. assume main sequence, of course.
+#
+#     for starting, use a flat surface polynomial over color and log(age) of the form
+#     alpha = k*color + j*logage + b
+#     '''
+#
+#     # WARNING: these numbers are totally made up
+#     k = -0.1 # change in alpha as function of color
+#     j = -0.5 # change in alpha as function of log(age)
+#     b = 1.0 # baseline value of alpha
+#
+#     alpha = k*gi + j*logage + b
+#
+#     return alpha
 
 
 def CDist(num=4):
