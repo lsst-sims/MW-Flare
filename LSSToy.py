@@ -112,7 +112,7 @@ def opsim_cadence(time, flux, mag, los, random=True):
     if random is True:
         time2 = np.random.choice(time, len(time))
     else:
-        time2=time
+        time2 = time
 
     fout = np.interp(tout, time2, flux)
 
