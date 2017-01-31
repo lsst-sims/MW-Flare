@@ -51,3 +51,55 @@ def xyz_from_lon_lat_px(lon, lat, px):
     return np.array([xx-xyz_from_lon_lat_px._xyz_center[0],
                      yy-xyz_from_lon_lat_px._xyz_center[1],
                      zz-xyz_from_lon_lat_px._xyz_center[2]])
+
+
+def prob_of_type(r_i, i_z):
+    """
+    Find the relative probabilities that a star is of spectral types
+    M0-M7 as detailed in the caption for Table 1 of Kowalski et al 2009
+    (ApJ 138, 633)
+
+    Parameters
+    ----------
+    r_i is the star's SDSS r-i color
+
+    i_z is the star's SDSS i-z color
+
+    Returns
+    -------
+    A dict containing the probability density value of the star's color
+    in the 2-D Gaussian PDF associated with each spectral subtype (M0-M7).
+    """
+
+    if not hasattr(prob_of_type, 'data'):
+        dtype = np.dtype([('type', str, 2),
+                          ('r_i', float), ('i_z', float),
+                          ('cov_00', float), ('cov_01', float),
+                          ('cov_10', float), ('cov_11', float)])
+
+        input_data = np.genfromtxt('color_covar_data.txt', dtype=dtype)
+        prob_of_type.data = {}
+        for row in input_data:
+            prob_of_type.data[row[0]] = {}
+            prob_of_type.data[row[0]]['r_i'] = row[1]
+            prob_of_type.data[row[0]]['i_z'] = row[2]
+
+            covar = np.array([[row[3], row[4]], [row[5], row[6]]])
+            covar_inv = np.linalg.inv(covar)
+            prob_of_type.data[row[0]]['covar_inv'] = covar_inv
+            sqrt_det = np.sqrt(np.linalg.det(covar))
+            prob_of_type.data[row[0]]['sqrt_det'] = sqrt_det
+
+
+    output = {}
+    for name in prob_of_type.data:
+        x_minus_mu = np.array([r_i-prob_of_type.data[name]['r_i'],
+                               i_z-prob_of_type.data[name]['i_z']])
+
+        arg = np.dot(x_minus_mu,
+                     np.dot(prob_of_type.data[name]['covar_inv'], x_minus_mu))
+
+        exp_term = np.exp(-0.5*arg)
+        output[name] = exp_term/(2.0*np.pi*prob_of_type.data[name]['sqrt_det'])
+
+    return output
