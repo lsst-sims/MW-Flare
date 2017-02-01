@@ -1,4 +1,4 @@
-# This is data is taken from Table 1 of Kowalski et al. 2009 (ApJ 138, 633)
+# This is data is taken from Table 1 of Kowalski et al. 2009 (AJ 138, 633)
 # Type r-i i-z covariance elements
 M0 0.55 0.32 0.0159 0.0039 0.0039 0.0083
 M1 0.78 0.43 0.0135 0.0051 0.0051 0.0055
