@@ -25,6 +25,7 @@ if __name__ == "__main__":
     # anything outside these bounds is considered later than M-dwarf
     r_i_cutoff = 2.3
     i_z_cutoff = 1.35
+    d_color = 0.01
     n_later = 0
     n_total = 0
 
@@ -35,6 +36,7 @@ if __name__ == "__main__":
     if not os.path.exists(args.out_dir):
         os.mkdir(args.out_dir)
 
+    color_color_grid = {}
     star_counts = {}
     for bin in z_bins:
         star_counts[bin] = {}
@@ -64,6 +66,29 @@ if __name__ == "__main__":
         print('n_later: %.3e of %.3e' % (n_later, n_total))
 
         m_stars = chunk[good_dexes]
+
+        ri = m_stars['r'] - m_stars['i']
+        iz = m_stars['i'] - m_stars['z']
+        ri_dex = (ri/d_color).astype(int)
+        iz_dex = (iz/d_color).astype(int)
+        assert iz_dex.max() < 1000
+        color_color_dex = ri_dex*1000+iz_dex
+        color_color_unique, color_color_counts = np.unique(color_color_dex,
+                                                           return_counts=True)
+
+        ri_fin = color_color_unique//1000
+        iz_fin = color_color_unique%1000
+
+        for ri, iz, ct in zip(ri_fin, iz_fin, color_color_counts):
+            if ri in color_color_grid:
+                if iz in color_color_grid[ri]:
+                    color_color_grid[ri][iz] += ct
+                else:
+                    color_color_grid[ri][iz] = ct
+            else:
+                color_color_grid[ri] = {}
+                color_color_grid[ri][iz] = ct
+
         xyz = xyz_from_lon_lat_px(m_stars['lon'], m_stars['lat'],
                                   0.001*m_stars['px'])
 
@@ -72,10 +97,12 @@ if __name__ == "__main__":
                                                   np.abs(xyz[2])<=bin[1]))
 
             local_m_stars = m_stars[local_dexes]
+
             prob = prob_of_type(local_m_stars['r']-local_m_stars['i'],
                                 local_m_stars['i']-local_m_stars['z']).transpose()
 
             assert prob.shape[0] == len(local_m_stars)
+
             local_types = np.argmax(prob, axis=1)
             assert len(local_types) == len(local_m_stars)
 
@@ -92,5 +119,18 @@ if __name__ == "__main__":
         with open(out_name, 'w') as output_file:
             for ix in range(8):
                 output_file.write('M%d: %d\n' % (ix, star_counts[bin]['M%d' % ix]))
+
+    out_name = os.path.join(args.out_dir,
+                            'color_color_grid_%s.txt' % args.suffix)
+    with open(out_name, 'w') as output_file:
+        output_file.write('# r-i i-z ct\n')
+        ri_list = list(color_color_grid.keys())
+        ri_list.sort()
+        for ri in ri_list:
+            iz_list = list(color_color_grid[ri].keys())
+            iz_list.sort()
+            for iz in iz_list:
+                output_file.write('%.2f %.2f %d\n' % (ri*d_color, iz*d_color,
+                                                      color_color_grid[ri][iz]))
 
     print("n_later %d of %d\n" % (n_later, n_total))
