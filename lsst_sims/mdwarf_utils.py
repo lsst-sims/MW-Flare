@@ -67,39 +67,53 @@ def prob_of_type(r_i, i_z):
 
     Returns
     -------
-    A dict containing the probability density value of the star's color
+    A numpy array containing the probability density value of the star's color
     in the 2-D Gaussian PDF associated with each spectral subtype (M0-M7).
+    If more than one star was passed in, then each row of the numpy array
+    will corresponds to a different stellar type, i.e.
+
+    output[1][2]
+
+    will be the probability that star 2 is of type M1
     """
 
-    if not hasattr(prob_of_type, 'data'):
+    if not hasattr(prob_of_type, 'r_i'):
         dtype = np.dtype([('type', str, 2),
                           ('r_i', float), ('i_z', float),
                           ('cov_00', float), ('cov_01', float),
                           ('cov_10', float), ('cov_11', float)])
 
         input_data = np.genfromtxt('color_covar_data.txt', dtype=dtype)
-        prob_of_type.data = {}
-        for row in input_data:
-            prob_of_type.data[row[0]] = {}
-            prob_of_type.data[row[0]]['r_i'] = row[1]
-            prob_of_type.data[row[0]]['i_z'] = row[2]
+        prob_of_type.r_i = []
+        prob_of_type.i_z = []
+        prob_of_type.covar_inv = []
+        prob_of_type.sqrt_det = []
+        for ix, row in enumerate(input_data):
+            assert row[0] == 'M%d' % ix
+            prob_of_type.r_i.append(row[1])
+            prob_of_type.i_z.append(row[2])
 
             covar = np.array([[row[3], row[4]], [row[5], row[6]]])
             covar_inv = np.linalg.inv(covar)
-            prob_of_type.data[row[0]]['covar_inv'] = covar_inv
+            prob_of_type.covar_inv.append(covar_inv)
             sqrt_det = np.sqrt(np.linalg.det(covar))
-            prob_of_type.data[row[0]]['sqrt_det'] = sqrt_det
+            prob_of_type.sqrt_det.append(sqrt_det)
 
 
-    output = {}
-    for name in prob_of_type.data:
-        x_minus_mu = np.array([r_i-prob_of_type.data[name]['r_i'],
-                               i_z-prob_of_type.data[name]['i_z']])
+    output = []
+    for ix in range(len(prob_of_type.r_i)):
+        x_minus_mu = np.array([r_i-prob_of_type.r_i[ix],
+                               i_z-prob_of_type.i_z[ix]]).transpose()
 
-        arg = np.dot(x_minus_mu,
-                     np.dot(prob_of_type.data[name]['covar_inv'], x_minus_mu))
+        if len(x_minus_mu.shape)>1:
+            arg1 = np.dot(x_minus_mu, prob_of_type.covar_inv[ix])
+
+            # see http://stackoverflow.com/questions/15616742/vectorized-way-of-calculating-row-wise-dot-product-two-matrices-with-scipy
+            arg = np.einsum('ij,ij->i',arg1,x_minus_mu)
+        else:
+            arg = np.dot(x_minus_mu, np.dot(prob_of_type.covar_inv[ix], x_minus_mu))
 
         exp_term = np.exp(-0.5*arg)
-        output[name] = exp_term/(2.0*np.pi*prob_of_type.data[name]['sqrt_det'])
+        output.append(exp_term/(2.0*np.pi*prob_of_type.sqrt_det[ix]))
 
-    return output
+    return np.array(output)
