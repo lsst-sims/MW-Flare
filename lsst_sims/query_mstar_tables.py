@@ -35,11 +35,11 @@ if __name__ == "__main__":
     if not os.path.exists(args.out_dir):
         os.mkdir(args.out_dir)
 
-    out_stats = {}
+    star_counts = {}
     for bin in z_bins:
-        out_stats[bin] = {}
+        star_counts[bin] = {}
         for ix in range(8):
-            out_stats[bin]['M%d' % ix] = 0
+            star_counts[bin]['M%d' % ix] = 0
 
     table_name = 'stars_mlt_part_%s' % args.suffix
     db = DBObject(database='LSSTCATSIM', host='fatboy.phys.washington.edu',
@@ -82,7 +82,7 @@ if __name__ == "__main__":
             unique_types, unique_counts = np.unique(local_types,
                                                     return_counts=True)
             for tt, cc in zip(unique_types, unique_counts):
-                out_stats[bin]['M%d' % tt] += cc
+                star_counts[bin]['M%d' % tt] += cc
 
     for bin in z_bins:
         out_name = os.path.join(args.out_dir,
@@ -91,6 +91,6 @@ if __name__ == "__main__":
 
         with open(out_name, 'w') as output_file:
             for ix in range(8):
-                output_file.write('M%d: %d\n' % (ix, out_stats[bin]['M%d' % ix]))
+                output_file.write('M%d: %d\n' % (ix, star_counts[bin]['M%d' % ix]))
 
     print("n_later %d of %d\n" % (n_later, n_total))
