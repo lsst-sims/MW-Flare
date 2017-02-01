@@ -81,7 +81,6 @@ if __name__ == "__main__":
 
             unique_types, unique_counts = np.unique(local_types,
                                                     return_counts=True)
-            print unique_types
             for tt, cc in zip(unique_types, unique_counts):
                 out_stats[bin]['M%d' % tt] += cc
 
