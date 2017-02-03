@@ -132,7 +132,7 @@ class Covariogram(CovariogramBase):
         self._covar = None
         self._covar_inv = None
 
-    def __call__(self, pts_in):
+    def build(self, pts_in):
         """
         pts_in should be a 2-D numpy array.  Each row is one of the points
         in parameter space on which we are building the Gaussian Process.
