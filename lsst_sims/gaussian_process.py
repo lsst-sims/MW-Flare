@@ -220,7 +220,7 @@ class GaussianProcess(object):
 
         self._training_pts = copy.deepcopy(training_pts)
         self._training_fn = copy.deepcopy(training_fn)
-        self._ln_det = np.log(self.covariogram.det_covar)
+        self._ln_det = np.log(np.abs(self.covariogram.det_covar))
 
     def ln_likelihood(self):
         if self._mean_fn is None:
