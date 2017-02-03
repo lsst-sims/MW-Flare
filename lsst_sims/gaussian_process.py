@@ -105,7 +105,7 @@ class CovariogramBase(object):
 
     @property
     def hyper_params(self):
-        return np.append(kernel.hyper_params, self._kriging_param)
+        return np.append(self.kernel.hyper_params, self._kriging_param)
 
     @hyper_params.setter
     def hyper_params(self, val):
