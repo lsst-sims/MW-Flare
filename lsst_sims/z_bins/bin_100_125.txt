@@ -1,0 +1,11 @@
+# A by-eye transcription of the 100 < |z| < 125 pc sub-plot of Figure 4 of
+# West et al. 2008 (AJ 135, 785)
+# Mtype, fraction active, +, -
+0 0.05 0.04 0.14
+1 0.04 0.03 0.13
+2 0.08 0.06 0.13
+3 0.21 0.175 0.26
+4 0.47 0.425 0.5
+5 0.65 0.625 0.675
+6 0.62 0.59 0.65
+7 0.2 0.11 0.46 
