@@ -8,7 +8,8 @@ import numpy as np
 import copy
 
 
-__all__ = ["KernelBase", "ExpSquaredKernel", "Covariogram"]
+__all__ = ["KernelBase", "ExpSquaredKernel",
+           "Covariogram", "GaussianProcess"]
 
 
 class KernelBase(object):
@@ -181,3 +182,63 @@ class Covariogram(CovariogramBase):
             raise RuntimeError("Cannot build covar_inv; covar is None")
 
         self._covar_inv = np.linalg.inv(self._covar)
+
+
+class GaussianProcess(object):
+
+    def __init__(self, covariogram):
+        self._covariogram = covariogram
+        self._mean_fn = None
+        self._inv_dot_fn = None
+        self._training_pts = None
+        self._training_fn = None
+        self._ln_det = None
+
+    @property
+    def covariogram(self):
+        return self._covariogram
+
+    @property
+    def training_pts(self):
+        return self._training_pts
+
+    @property
+    def training_fn(self):
+        return self._training_fn
+
+    @property
+    def mean_fn(self):
+        return self._mean_fn
+
+    def build(self, training_pts, training_fn):
+        self.covariogram.build_covar(training_pts)
+        self.covariogram.build_covar_inv(training_pts)
+
+        self._mean_fn = np.mean(training_fn)
+
+        self._inv_dot_fn = np.dot(self.covariogram.covar_inv, training_fn-self._mean_fn)
+
+        self._training_pts = copy.deepcopy(training_pts)
+        self._training_fn = copy.deepcopy(training_fn)
+        self._ln_det = np.log(self.covariogram.det_covar)
+
+    def ln_likelihood(self):
+        if self._mean_fn is None:
+            raise RuntimeError("must call GaussianProcess.build() "
+                               "before GaussianProcess.likelihood")
+
+        arg = np.dot(self.training_fn, self._inv_dot_fn)
+        return -0.5*arg - 0.5*self._ln_det
+
+    def regress(self, test_pts):
+        if self._mean_fn is None:
+            raise RuntimeError("must call GaussianProcess.build() "
+                               "before GaussianProcess.project()")
+
+        output = []
+        for pt in test_pts:
+            covar_vals = self.covariogram(pt, self.training_pts)
+            ans = np.dot(covar_vals, self._inv_dot_fn)
+            output.append(self.mean_fn + ans)
+
+        return np.array(output)
