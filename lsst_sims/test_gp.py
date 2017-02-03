@@ -100,5 +100,18 @@ class CovariogramTestCase(unittest.TestCase):
         covariogram = Covariogram(kernel)
         self.assertEqual(covariogram.n_hyper_params, 5)
 
+    def test_hyper_param_assignment(self):
+        kernel = ExpSquaredKernel(dim=4)
+        covariogram = Covariogram(kernel)
+        covariogram.hyper_params = np.array([1.0, 2.1, 3.2, 4.5, 0.35])
+        hp = covariogram.kernel.hyper_params
+        np.testing.assert_array_almost_equal(hp/np.array([1.0, 2.1, 3.2, 4.5]),
+                                             np.ones(4), decimal=10)
+
+        hp = covariogram.hyper_params
+        np.testing.assert_array_almost_equal(hp/np.array([1.0, 2.1, 3.2, 4.5, 0.35]),
+                                             np.ones(5), decimal=10)
+
+
 if __name__ == "__main__":
     unittest.main()
