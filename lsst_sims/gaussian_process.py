@@ -157,6 +157,17 @@ class Covariogram(CovariogramBase):
 
         self._covar = np.array(self._covar)/self.kriging_param
 
+    def assign_diagonal_covar(self, val):
+        if self._covar is None:
+            raise RuntimeError("Cannot assign diagonal covar elements; "
+                               "self._covar is None")
+
+        if isinstance(val, float):
+            for ix in range(self._covar.shape[0]):
+                self._covar[ix][ix] = val
+        else:
+            for ix in range(self._covar.shape[0]):
+                self._covar[ix][ix] = val[ix]
 
     def build_covar_inv(self):
         if self._covar is None:
