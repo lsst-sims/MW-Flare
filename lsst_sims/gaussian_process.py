@@ -131,6 +131,7 @@ class Covariogram(CovariogramBase):
         self._nugget = 1.0e-5
         self._covar = None
         self._covar_inv = None
+        self._diag = None
 
     def build_covar(self, pts_in):
         """
@@ -149,7 +150,14 @@ class Covariogram(CovariogramBase):
             other_dexes = range(ix, len(pts_in))
             other_pts = pts_in[other_dexes]
             kernel_vals = self.kernel(pt, other_pts)
-            kernel_vals[0] += self.nugget
+            if self._diag is None:
+                kernel_vals[0] += self.nugget
+            else:
+                if isinstance(self._diag, float):
+                    kernel_vals[0] = self._diag*self.kriging_param
+                else:
+                    kernel_vals[0] = self._diag[ix]*self.kriging_param
+
             for ii, iy in enumerate(other_dexes):
                 self._covar[ix][iy] = kernel_vals[ii]
                 if ix != iy:
@@ -158,16 +166,7 @@ class Covariogram(CovariogramBase):
         self._covar = np.array(self._covar)/self.kriging_param
 
     def assign_diagonal_covar(self, val):
-        if self._covar is None:
-            raise RuntimeError("Cannot assign diagonal covar elements; "
-                               "self._covar is None")
-
-        if isinstance(val, float):
-            for ix in range(self._covar.shape[0]):
-                self._covar[ix][ix] = val
-        else:
-            for ix in range(self._covar.shape[0]):
-                self._covar[ix][ix] = val[ix]
+        self._diag = val
 
     def build_covar_inv(self):
         if self._covar is None:

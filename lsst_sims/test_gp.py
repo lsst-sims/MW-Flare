@@ -177,8 +177,8 @@ class CovariogramTestCase(unittest.TestCase):
         pts_in =np.array([[1.2, 3.2, 4.6], [2.3, 4.6, 1.9],
                           [4.2, 1.1, 2.2], [0.9, 4.2, 0.26]])
 
-        covariogram.build_covar(pts_in)
         covariogram.assign_diagonal_covar(3.4)
+        covariogram.build_covar(pts_in)
         covariogram.build_covar_inv()
         self.assertEqual(covariogram.covar.shape, (4,4))
         self.assertEqual(covariogram.covar_inv.shape, (4,4))
@@ -209,8 +209,8 @@ class CovariogramTestCase(unittest.TestCase):
 
         diag = np.array([2.6, 7.1, 0.3, 4.2])
 
-        covariogram.build_covar(pts_in)
         covariogram.assign_diagonal_covar(diag)
+        covariogram.build_covar(pts_in)
         covariogram.build_covar_inv()
         self.assertEqual(covariogram.covar.shape, (4,4))
         self.assertEqual(covariogram.covar_inv.shape, (4,4))
