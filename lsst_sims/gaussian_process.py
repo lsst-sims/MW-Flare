@@ -115,7 +115,7 @@ class CovariogramBase(object):
                                + "it expects %d" % self._n_hyper_params)
 
         self._kernel.hyper_params = val[:-1]
-        self._kriging_params = val[-1]
+        self._kriging_param = val[-1]
 
     @property
     def n_hyper_params(self):
