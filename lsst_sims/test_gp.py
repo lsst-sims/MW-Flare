@@ -88,6 +88,8 @@ class ExpSquaredKernelTest(unittest.TestCase):
 
 class CovariogramTestCase(unittest.TestCase):
 
+    longMessage = True
+
     def test_nugget_assignment(self):
         kernel = ExpSquaredKernel()
         covariogram = Covariogram(kernel)
@@ -134,7 +136,9 @@ class CovariogramTestCase(unittest.TestCase):
                 ans = np.exp(-0.5*arg)
                 if ix == iy:
                     ans += 1.0e-3
-                self.assertAlmostEqual(covariogram.covar[ix][iy]/ans, 1.0, 10)
+                msg = 'failed on %d %d' % (ix, iy)
+                self.assertAlmostEqual(covariogram.covar[ix][iy]/ans, 1.0, 10,
+                                       msg=msg)
 
 
 if __name__ == "__main__":
