@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 
-from gaussian_process import ExpSquaredKernel
+from gaussian_process import ExpSquaredKernel, Covariogram
 
 class ExpSquaredKernelTest(unittest.TestCase):
     """
@@ -84,6 +84,17 @@ class ExpSquaredKernelTest(unittest.TestCase):
         control = np.exp(-0.5*np.array([1.2*1.2+0.25*4.5*4.5+7.0*7.0/9.0,
                                         0.1*0.1+3.4*3.4*0.25+5.9*5.9/9.0]))
         np.testing.assert_array_almost_equal(ans/control, np.ones(2), decimal=10)
+
+
+class CovariogramTestCase(unittest.TestCase):
+
+    def test_nugget_assignment(self):
+        kernel = ExpSquaredKernel()
+        covariogram = Covariogram(kernel)
+        self.assertEqual(covariogram.nugget, 1.0e-5)
+        covariogram.nugget=1.0e-4
+        self.assertEqual(covariogram.nugget, 1.0e-4)
+
 
 if __name__ == "__main__":
     unittest.main()
