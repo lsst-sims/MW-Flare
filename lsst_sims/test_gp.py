@@ -95,6 +95,10 @@ class CovariogramTestCase(unittest.TestCase):
         covariogram.nugget=1.0e-4
         self.assertEqual(covariogram.nugget, 1.0e-4)
 
+    def test_n_hyper_params(self):
+        kernel = ExpSquaredKernel(dim=4)
+        covariogram = Covariogram(kernel)
+        self.assertEqual(covariogram.n_hyper_params, 5)
 
 if __name__ == "__main__":
     unittest.main()
