@@ -133,6 +133,9 @@ class Covariogram(CovariogramBase):
         self._covar_inv = None
         self._diag = None
 
+    def __call__(self, pt1, pt2_list):
+        return self.kernel(pt1, pt2_list)/self.kriging_param
+
     def build_covar(self, pts_in):
         """
         pts_in should be a 2-D numpy array.  Each row is one of the points
@@ -149,21 +152,19 @@ class Covariogram(CovariogramBase):
         for ix, pt in enumerate(pts_in):
             other_dexes = range(ix, len(pts_in))
             other_pts = pts_in[other_dexes]
-            kernel_vals = self.kernel(pt, other_pts)
+            kernel_vals = self(pt, other_pts)
             if self._diag is None:
-                kernel_vals[0] += self.nugget
+                kernel_vals[0] += self.nugget/self.kriging_param
             else:
                 if isinstance(self._diag, float):
-                    kernel_vals[0] = self._diag*self.kriging_param
+                    kernel_vals[0] = self._diag
                 else:
-                    kernel_vals[0] = self._diag[ix]*self.kriging_param
+                    kernel_vals[0] = self._diag[ix]
 
             for ii, iy in enumerate(other_dexes):
                 self._covar[ix][iy] = kernel_vals[ii]
                 if ix != iy:
                     self._covar[iy][ix] = kernel_vals[ii]
-
-        self._covar = np.array(self._covar)/self.kriging_param
 
     def assign_diagonal_covar(self, val):
         self._diag = val
