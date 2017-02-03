@@ -212,7 +212,7 @@ class GaussianProcess(object):
 
     def build(self, training_pts, training_fn):
         self.covariogram.build_covar(training_pts)
-        self.covariogram.build_covar_inv(training_pts)
+        self.covariogram.build_covar_inv()
 
         self._mean_fn = np.mean(training_fn)
 
