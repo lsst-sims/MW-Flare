@@ -144,11 +144,16 @@ class Covariogram(CovariogramBase):
         if not isinstance(pts_in, np.ndarray):
             raise RuntimeError("Need to pass a numpy array to Covariogram()")
 
-        self._covar = []
+        self._covar = np.zeros((len(pts_in), len(pts_in)))
         for ix, pt in enumerate(pts_in):
-            kernel_vals = self.kernel(pt, pts_in)
-            kernel_vals[ix] += self.nugget
-            self._covar.append(kernel_vals)
+            other_dexes = range(ix, len(pts_in))
+            other_pts = pts_in[other_dexes]
+            kernel_vals = self.kernel(pt, other_pts)
+            kernel_vals[0] += self.nugget
+            for ii, iy in enumerate(other_dexes):
+                self._covar[ix][iy] = kernel_vals[ii]
+                if ix != iy:
+                    self._covar[iy][ix] = kernel_vals[ii]
 
         self._covar = np.array(self._covar)/self.kriging_param
         self._covar_inv = np.linalg.inv(self._covar)
