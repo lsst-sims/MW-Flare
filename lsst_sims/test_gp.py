@@ -112,6 +112,30 @@ class CovariogramTestCase(unittest.TestCase):
         np.testing.assert_array_almost_equal(hp/np.array([1.0, 2.1, 3.2, 4.5, 0.35]),
                                              np.ones(5), decimal=10)
 
+    def test_covariogram(self):
+        kernel = ExpSquaredKernel(dim=3)
+        kernel.hyper_params = np.array([1.2, 3.4, 2.5])
+        covariogram = Covariogram(kernel)
+        covariogram.nugget = 1.0e-3
+        pts_in =np.array([[1.2, 3.2, 4.6], [2.3, 4.6, 1.9],
+                          [4.2, 1.1, 2.2], [0.9, 4.2, 0.26]])
+
+        covariogram.build(pts_in)
+        self.assertEqual(covariogram.covar.shape, (4,4))
+        self.assertEqual(covariogram.covar_inv.shape, (4,4))
+        test = np.dot(covariogram.covar, covariogram.covar_inv)
+        np.testing.assert_array_almost_equal(test, np.identity(4), decimal=10)
+
+        for ix in range(4):
+            for iy in range(4):
+                arg = np.power((pts_in[ix][0]-pts_in[iy][0])/1.2, 2)
+                arg += np.power((pts_in[ix][1]-pts_in[iy][1])/3.4, 2)
+                arg += np.power((pts_in[ix][2]-pts_in[iy][2])/2.5, 2)
+                ans = np.exp(-0.5*arg)
+                if ix == iy:
+                    ans += 1.0e-3
+                self.assertAlmostEqual(covariogram.covar[ix][iy]/ans, 1.0, 10)
+
 
 if __name__ == "__main__":
     unittest.main()
