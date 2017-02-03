@@ -112,7 +112,7 @@ class CovariogramTestCase(unittest.TestCase):
         np.testing.assert_array_almost_equal(hp/np.array([1.0, 2.1, 3.2, 4.5, 0.35]),
                                              np.ones(5), decimal=10)
 
-    def test_covariogram(self):
+    def test_covariogram_build(self):
         kernel = ExpSquaredKernel(dim=3)
         kernel.hyper_params = np.array([1.2, 3.4, 2.5])
         covariogram = Covariogram(kernel)
