@@ -89,6 +89,10 @@ class CovariogramBase(object):
         return self._covar
 
     @property
+    def det_covar(self):
+        return self._det_covar
+
+    @property
     def covar_inv(self):
         return self._covar_inv
 
@@ -130,6 +134,7 @@ class Covariogram(CovariogramBase):
         self._kernel = kernel
         self._nugget = 1.0e-5
         self._covar = None
+        self._det_covar = None
         self._covar_inv = None
         self._diag = None
 
@@ -165,6 +170,8 @@ class Covariogram(CovariogramBase):
                 self._covar[ix][iy] = kernel_vals[ii]
                 if ix != iy:
                     self._covar[iy][ix] = kernel_vals[ii]
+
+        self._det_covar = np.linalg.det(self._covar)
 
     def assign_diagonal_covar(self, val):
         self._diag = val
