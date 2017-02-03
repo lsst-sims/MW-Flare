@@ -122,7 +122,8 @@ class CovariogramTestCase(unittest.TestCase):
         pts_in =np.array([[1.2, 3.2, 4.6], [2.3, 4.6, 1.9],
                           [4.2, 1.1, 2.2], [0.9, 4.2, 0.26]])
 
-        covariogram.build(pts_in)
+        covariogram.build_covar(pts_in)
+        covariogram.build_covar_inv()
         self.assertEqual(covariogram.covar.shape, (4,4))
         self.assertEqual(covariogram.covar_inv.shape, (4,4))
         test = np.dot(covariogram.covar, covariogram.covar_inv)

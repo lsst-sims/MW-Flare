@@ -132,7 +132,7 @@ class Covariogram(CovariogramBase):
         self._covar = None
         self._covar_inv = None
 
-    def build(self, pts_in):
+    def build_covar(self, pts_in):
         """
         pts_in should be a 2-D numpy array.  Each row is one of the points
         in parameter space on which we are building the Gaussian Process.
@@ -156,4 +156,10 @@ class Covariogram(CovariogramBase):
                     self._covar[iy][ix] = kernel_vals[ii]
 
         self._covar = np.array(self._covar)/self.kriging_param
+
+
+    def build_covar_inv(self):
+        if self._covar is None:
+            raise RuntimeError("Cannot build covar_inv; covar is None")
+
         self._covar_inv = np.linalg.inv(self._covar)
