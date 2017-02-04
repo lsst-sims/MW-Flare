@@ -227,7 +227,9 @@ class GaussianProcess(object):
             raise RuntimeError("must call GaussianProcess.build() "
                                "before GaussianProcess.likelihood")
 
-        arg = np.dot(self.training_fn, self._inv_dot_fn)
+        arg = np.dot(self.training_fn-self._mean_fn, self._inv_dot_fn)
+        if arg<0.0:
+            return -1.0e20
         return -0.5*arg - 0.5*self._ln_det
 
     def regress(self, test_pts):
