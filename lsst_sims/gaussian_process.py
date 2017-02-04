@@ -157,7 +157,10 @@ class Covariogram(CovariogramBase):
             other_pts = pts_in[other_dexes]
             kernel_vals = self(pt, other_pts)
             if self._diag is None:
-                kernel_vals[0] += self.nugget/self.kriging_param
+                if isinstance(self.nugget, float):
+                    kernel_vals[0] += self.nugget
+                else:
+                    kernel_vals[0] += self.nugget[ix]
             else:
                 if isinstance(self._diag, float):
                     kernel_vals[0] = self._diag

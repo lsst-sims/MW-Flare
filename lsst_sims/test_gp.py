@@ -162,9 +162,11 @@ class CovariogramTestCase(unittest.TestCase):
                 arg += np.power((pts_in[ix][1]-pts_in[iy][1])/3.4, 2)
                 arg += np.power((pts_in[ix][2]-pts_in[iy][2])/2.5, 2)
                 ans = np.exp(-0.5*arg)
+                ans = ans/0.6
+
                 if ix == iy:
                     ans += 1.0e-3
-                ans = ans/0.6
+
                 msg = 'failed on %d %d' % (ix, iy)
                 self.assertAlmostEqual(covariogram.covar[ix][iy]/ans, 1.0, 10,
                                        msg=msg)
