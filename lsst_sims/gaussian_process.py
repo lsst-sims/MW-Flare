@@ -34,7 +34,7 @@ class KernelBase(object):
                                + "Kernel %d hyper params; " % n_val
                                + "it expects %d" % self._n_hyper_params)
 
-        self._hyper_params = val
+        self._hyper_params = copy.deepcopy(val)
 
     def __call__(self, pt1, pt2_list):
         if isinstance(pt1, float) and len(pt2_list.shape) != 1:
@@ -103,10 +103,7 @@ class CovariogramBase(object):
 
     @nugget.setter
     def nugget(self, val):
-        if not isinstance(val, float):
-            raise RuntimeError("Nugget should be a float; "
-                               "passing %s" % type(val))
-        self._nugget = val
+        self._nugget = copy.deepcopy(val)
 
     @property
     def hyper_params(self):
@@ -119,8 +116,8 @@ class CovariogramBase(object):
                                + "covariogram %d hyper params; " % len(val)
                                + "it expects %d" % self._n_hyper_params)
 
-        self._kernel.hyper_params = val[:-1]
-        self._kriging_param = val[-1]
+        self._kernel.hyper_params = copy.deepcopy(val[:-1])
+        self._kriging_param = copy.deepcopy(val[-1])
 
     @property
     def n_hyper_params(self):
