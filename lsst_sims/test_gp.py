@@ -114,7 +114,7 @@ class CovariogramTestCase(unittest.TestCase):
         np.testing.assert_array_almost_equal(hp/np.array([1.0, 2.1, 3.2, 4.5, 0.35]),
                                              np.ones(5), decimal=10)
 
-    def test_covariogram_build(self):
+    def test_covariogram_build_3d(self):
         kernel = ExpSquaredKernel(dim=3)
         kernel.hyper_params = np.array([1.2, 3.4, 2.5])
         covariogram = Covariogram(kernel)
@@ -141,6 +141,32 @@ class CovariogramTestCase(unittest.TestCase):
                 msg = 'failed on %d %d' % (ix, iy)
                 self.assertAlmostEqual(covariogram.covar[ix][iy]/ans, 1.0, 10,
                                        msg=msg)
+
+    def test_covariogram_build_1d(self):
+        kernel = ExpSquaredKernel()
+        kernel.hyper_params = np.array([3.1])
+        covariogram = Covariogram(kernel)
+        covariogram.nugget = 1.0e-3
+        pts_in =np.array([1.7, 2.8, 9.4, 5.6, 7.1])
+
+        covariogram.build_covar(pts_in)
+        covariogram.build_covar_inv()
+        self.assertEqual(covariogram.dimensions, 1)
+        self.assertEqual(covariogram.covar.shape, (5,5))
+        self.assertEqual(covariogram.covar_inv.shape, (5,5))
+        test = np.dot(covariogram.covar, covariogram.covar_inv)
+        np.testing.assert_array_almost_equal(test, np.identity(5), decimal=10)
+
+        for ix in range(5):
+            for iy in range(5):
+                arg = np.power((pts_in[ix]-pts_in[iy])/3.1, 2)
+                ans = np.exp(-0.5*arg)
+                if ix == iy:
+                    ans += 1.0e-3
+                msg = 'failed on %d %d' % (ix, iy)
+                self.assertAlmostEqual(covariogram.covar[ix][iy]/ans, 1.0, 10,
+                                       msg=msg)
+
 
     def test_covariogram_build_with_hyper(self):
         kernel = ExpSquaredKernel(dim=3)
