@@ -6,12 +6,35 @@ import argparse
 
 from gaussian_process import ExpSquaredKernel, Covariogram, GaussianProcess
 
+class LinearMeanGP(GaussianProcess):
+
+    def __init__(self,covariogram,pt1,pt2,asymptote):
+
+        self._slope = (pt1[1]-pt2[1])/(pt1[0]-pt2[0])
+        self._intercept = pt1[1] - self._slope*pt1[0]
+        self._max = pt2[0]
+        self._asymptote = asymptote
+
+        super(LinearMeanGP, self).__init__(covariogram)
+
+
+    def mean_fn(self, pt_list):
+        if isinstance(pt_list, float):
+            pts = np.array([pt_list])
+        else:
+            pts = pt_list
+
+        return np.where(pts<self._max,
+                        self._intercept + self._slope*pt_list,
+                        self._asymptote)
+
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--infile', type=str, default=None)
     parser.add_argument('--outfile', type=str, default=None)
+    parser.add_argument('--anchor', type=float, nargs='+', default=None)
 
     args = parser.parse_args()
     if args.infile is None or args.outfile is None:
@@ -36,7 +59,13 @@ if __name__ == "__main__":
     kernel = ExpSquaredKernel(dim=1)
     covar = Covariogram(kernel)
     covar.nugget = nugget
-    gp = GaussianProcess(covar)
+    if args.anchor is None:
+        gp = GaussianProcess(covar)
+    else:
+        gp = LinearMeanGP(covar,
+                          (args.anchor[0], args.anchor[1]),
+                          (args.anchor[2], args.anchor[3]),
+                          args.anchor[4])
 
     min_hyper_params = np.array([0.5, 1.0])
     gp.covariogram.hyper_params = min_hyper_params
