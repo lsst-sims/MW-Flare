@@ -250,6 +250,6 @@ class GaussianProcess(object):
         for pt in test_pts:
             covar_vals = self.covariogram(pt, self.training_pts)
             ans = np.dot(covar_vals, self._inv_dot_fn)
-            output.append(self.mean_fn(test_pts) + ans)
+            output.append(self.mean_fn(pt) + ans)
 
         return np.array(output)
