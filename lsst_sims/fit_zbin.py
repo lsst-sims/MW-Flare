@@ -96,5 +96,9 @@ if __name__ == "__main__":
     y_test = gp.regress(x_test)
 
     with open(args.outfile, "w") as output_file:
+        output_file.write('# data %s\n' % args.infile)
+        output_file.write('# hyper params: %.3f %.3f\n' %
+                          (gp.covariogram.hyper_params[0],
+                           gp.covariogram.hyper_params[1]))
         for xx, yy in zip(x_test, y_test):
             output_file.write("%e %e\n" % (xx, yy))
