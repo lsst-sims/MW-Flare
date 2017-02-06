@@ -124,6 +124,7 @@ class CovariogramTestCase(unittest.TestCase):
 
         covariogram.build_covar(pts_in)
         covariogram.build_covar_inv()
+        self.assertEqual(covariogram.dimensions, 3)
         self.assertEqual(covariogram.covar.shape, (4,4))
         self.assertEqual(covariogram.covar_inv.shape, (4,4))
         test = np.dot(covariogram.covar, covariogram.covar_inv)
@@ -151,6 +152,7 @@ class CovariogramTestCase(unittest.TestCase):
 
         covariogram.build_covar(pts_in)
         covariogram.build_covar_inv()
+        self.assertEqual(covariogram.dimensions, 3)
         self.assertEqual(covariogram.covar.shape, (4,4))
         self.assertEqual(covariogram.covar_inv.shape, (4,4))
         test = np.dot(covariogram.covar, covariogram.covar_inv)
@@ -182,6 +184,7 @@ class CovariogramTestCase(unittest.TestCase):
         covariogram.assign_diagonal_covar(3.4)
         covariogram.build_covar(pts_in)
         covariogram.build_covar_inv()
+        self.assertEqual(covariogram.dimensions, 3)
         self.assertEqual(covariogram.covar.shape, (4,4))
         self.assertEqual(covariogram.covar_inv.shape, (4,4))
         test = np.dot(covariogram.covar, covariogram.covar_inv)
@@ -214,6 +217,7 @@ class CovariogramTestCase(unittest.TestCase):
         covariogram.assign_diagonal_covar(diag)
         covariogram.build_covar(pts_in)
         covariogram.build_covar_inv()
+        self.assertEqual(covariogram.dimensions, 3)
         self.assertEqual(covariogram.covar.shape, (4,4))
         self.assertEqual(covariogram.covar_inv.shape, (4,4))
         test = np.dot(covariogram.covar, covariogram.covar_inv)

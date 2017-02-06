@@ -123,6 +123,9 @@ class CovariogramBase(object):
     def n_hyper_params(self):
         return self._n_hyper_params
 
+    @property
+    def dimensions(self):
+        return self._dimensions
 
 class Covariogram(CovariogramBase):
 
@@ -135,6 +138,7 @@ class Covariogram(CovariogramBase):
         self._det_covar = None
         self._covar_inv = None
         self._diag = None
+        self._dimensions = None
 
     def __call__(self, pt1, pt2_list):
         return self.kernel(pt1, pt2_list)/self.kriging_param
@@ -150,6 +154,11 @@ class Covariogram(CovariogramBase):
         """
         if not isinstance(pts_in, np.ndarray):
             raise RuntimeError("Need to pass a numpy array to Covariogram()")
+
+        if len(pts_in.shape) == 1:
+            self._dimensions = 1
+        else:
+            self._dimensions = pts_in.shape[1]
 
         self._covar = np.zeros((len(pts_in), len(pts_in)))
         for ix, pt in enumerate(pts_in):
