@@ -43,20 +43,20 @@ if __name__ == "__main__":
 
 
     gp.build(data['class'], data['frac'])
-    max_like = gp.ln_likelihood()
+    max_like = None
     rng = np.random.RandomState(44)
-    for ix in range(50000):
-        delta = (rng.random_sample(2)-0.5)
-        test_params = min_hyper_params + delta
-        gp.covariogram.hyper_params = test_params
-        gp.build(data['class'], data['frac'])
-        ln_like = gp.ln_likelihood()
-        if ln_like > max_like:
-            print ln_like, test_params, -2.0*(ln_like+0.5*gp._ln_det)
-            max_like = ln_like
-            min_hyper_params = copy.deepcopy(test_params)
-        else:
-            gp.covariogram.hyper_params = min_hyper_params
+    for ell in np.arange(0.05, 3.0, 0.05):
+        for kk in  np.arange(0.1, 100.0, 0.1):
+            test_params = np.array([ell, kk])
+            gp.covariogram.hyper_params = test_params
+            gp.build(data['class'], data['frac'])
+            ln_like = gp.ln_likelihood()
+            if max_like is None or ln_like > max_like:
+                print ln_like, test_params, -2.0*(ln_like+0.5*gp._ln_det)
+                max_like = ln_like
+                min_hyper_params = copy.deepcopy(test_params)
+            else:
+                gp.covariogram.hyper_params = min_hyper_params
 
 
     gp.covariogram.hyper_params = min_hyper_params
