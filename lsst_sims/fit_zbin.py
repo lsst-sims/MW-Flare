@@ -66,14 +66,6 @@ if __name__ == "__main__":
     x_test = np.arange(0.0,16.0, 0.1)
     y_test = gp.regress(x_test)
 
-    print gp.covariogram.covar
-    print '\n\n'
-    print gp.covariogram(0.0,gp.training_pts)
-    print '\n\n'
-    print gp.training_pts
-    print '\n\n'
-    print gp._inv_dot_fn
-
     with open(args.outfile, "w") as output_file:
         for xx, yy in zip(x_test, y_test):
             output_file.write("%e %e\n" % (xx, yy))
