@@ -206,34 +206,34 @@ class GaussianProcess(object):
     def training_fn(self):
         return self._training_fn
 
-    @property
-    def mean_fn(self):
+    def mean_fn(self, pt_list):
+        if self._mean_fn is None:
+            self._mean_fn = np.mean(self.training_fn)
         return self._mean_fn
 
     def build(self, training_pts, training_fn):
-        self.covariogram.build_covar(training_pts)
-        self.covariogram.build_covar_inv()
-
-        self._mean_fn = np.mean(training_fn)
-
-        self._inv_dot_fn = np.dot(self.covariogram.covar_inv, training_fn-self._mean_fn)
-
         self._training_pts = copy.deepcopy(training_pts)
         self._training_fn = copy.deepcopy(training_fn)
+
+        self.covariogram.build_covar(self.training_pts)
+        self.covariogram.build_covar_inv()
+
+        self._inv_dot_fn = np.dot(self.covariogram.covar_inv, training_fn-self.mean_fn(self.training_pts))
+
         self._ln_det = np.log(np.abs(self.covariogram.det_covar))
 
     def ln_likelihood(self):
-        if self._mean_fn is None:
+        if self._inv_dot_fn is None:
             raise RuntimeError("must call GaussianProcess.build() "
                                "before GaussianProcess.likelihood")
 
-        arg = np.dot(self.training_fn-self._mean_fn, self._inv_dot_fn)
+        arg = np.dot(self.training_fn-self.mean_fn(self.training_pts), self._inv_dot_fn)
         if arg<0.0:
             return -1.0e20
         return -0.5*arg - 0.5*self._ln_det
 
     def regress(self, test_pts):
-        if self._mean_fn is None:
+        if self._inv_dot_fn is None:
             raise RuntimeError("must call GaussianProcess.build() "
                                "before GaussianProcess.project()")
 
@@ -241,6 +241,6 @@ class GaussianProcess(object):
         for pt in test_pts:
             covar_vals = self.covariogram(pt, self.training_pts)
             ans = np.dot(covar_vals, self._inv_dot_fn)
-            output.append(self.mean_fn + ans)
+            output.append(self.mean_fn(test_pts) + ans)
 
         return np.array(output)
