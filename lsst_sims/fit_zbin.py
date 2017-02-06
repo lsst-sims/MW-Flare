@@ -9,19 +9,22 @@ from gaussian_process import ExpSquaredKernel, Covariogram, GaussianProcess
 class LastThreeMeanGP(GaussianProcess):
 
     def _calc_mean(self, pt):
-        if self._mean_fn is None:
-            self._mean_fn = np.mean(self.training_fn)
-            wanted_dex = np.argsort(self.training_pts)[:3]
-            sqrt_nugget = np.sqrt(self.covariogram.nugget)
-            mean_num = (self.training_fn[wanted_dex]/sqrt_nugget[wanted_dex]).sum()
-            mean_denom = (1.0/sqrt_nugget[wanted_dex]).sum()
-            self._extrap_mean = mean_num/mean_denom
+        if not hasattr(self, '_sqrt_nugget'):
+            if len(self.covariogram.nugget)!=len(self.training_pts):
+                raise RuntimeError("have not assigned nugget yet %d %d" %
+                                   (len(self.training_pts), len(self.nugget)))
+            self._sqrt_nugget = 1.0/np.sqrt(self.covariogram.nugget)
 
+        dd = np.abs(pt-self.training_pts)
+        sorted_dex = np.argsort(dd)
+        if dd[sorted_dex[0]]>0.0001:
+            wanted_dex = sorted_dex[:3]
+        else:
+            wanted_dex = sorted_dex[1:4]
 
-        if pt < self.training_pts.max():
-            return self._mean_fn
-
-        return self._extrap_mean
+        mean_num = (self.training_fn[wanted_dex]*self._sqrt_nugget[wanted_dex]).sum()
+        mean_denom = self._sqrt_nugget[wanted_dex].sum()
+        return mean_num/mean_denom
 
     def mean_fn(self, pt_list):
 
