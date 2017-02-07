@@ -245,7 +245,7 @@ class GaussianProcess(object):
     def regress(self, test_pts):
         if self._inv_dot_fn is None:
             raise RuntimeError("must call GaussianProcess.build() "
-                               "before GaussianProcess.project()")
+                               "before GaussianProcess.regress()")
 
         output = []
         for pt in test_pts:
