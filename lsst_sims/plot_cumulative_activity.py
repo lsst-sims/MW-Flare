@@ -31,6 +31,8 @@ if __name__ == "__main__":
     z_bin = []
     n_active = []
     n_total = []
+    type_ct = {}
+    type_total = {}
 
     kernel = ExpSquaredKernel(dim=1)
     covariogram = Covariogram(kernel)
@@ -80,11 +82,18 @@ if __name__ == "__main__":
                         if vv[0].startswith('M'):
                             spec_class = int(vv[0].replace('M','').replace(':',''))
                         else:
-                            spec_class = 12.0
+                            spec_class = 12
                         ct = int(vv[1])
                         frac = gp.regress([float(spec_class)])
                         n_active[-1] += frac[0]*ct
                         n_total[-1] += ct
+
+                        if spec_class in type_ct:
+                            type_ct[spec_class] += frac[0]*ct
+                            type_total[spec_class] += ct
+                        else:
+                            type_ct[spec_class] = frac[0]*ct
+                            type_total[spec_class] = ct
 
     z_bin = np.array(z_bin)
     n_active = np.array(n_active)
@@ -126,6 +135,20 @@ if __name__ == "__main__":
     plt.xlim(0, 250)
     xticks = [xx for xx in range(0, 250, 10)]
     xlabels = ['%d' % xx if ii%10==0 else '' for ii, xx in enumerate(xticks)]
+    plt.xticks(xticks, xlabels)
+
+    plt.subplot(2,2,3)
+    type_arr = list(type_ct.keys())
+    type_arr.sort()
+    type_ct_arr = np.array([type_ct[cc] for cc in type_arr])
+    type_total_arr = np.array([type_total[cc] for cc in type_arr])
+    plt.plot(type_arr, type_ct_arr/type_total_arr, linestyle='', marker='o')
+    plt.xlabel('spectral class', fontsize=10)
+    plt.ylabel('fraction active', fontsize=10)
+    xticks = range(10)
+    xlabels = ['M%d' %ii for ii in xticks]
+    xticks.append(12)
+    xlabels.append('later')
     plt.xticks(xticks, xlabels)
 
     plt.tight_layout()
