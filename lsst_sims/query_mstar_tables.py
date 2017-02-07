@@ -45,6 +45,7 @@ if __name__ == "__main__":
         star_counts[bin] = {}
         for ix in range(args.max_type+1):
             star_counts[bin]['M%d' % ix] = 0
+        star_counts[bin]['later'] = 0
 
     table_name = 'stars_mlt_part_%s' % args.suffix
     db = DBObject(database='LSSTCATSIM', host='fatboy.phys.washington.edu',
@@ -59,28 +60,21 @@ if __name__ == "__main__":
 
     chunk_iter = db.get_chunk_iterator(query, chunk_size=100000, dtype=dtype)
 
-    for chunk in chunk_iter:
-        good_dexes = np.where(np.logical_and(chunk['r']-chunk['i']<r_i_cutoff,
-                                             chunk['i']-chunk['z']<i_z_cutoff))
+    for m_stars in chunk_iter:
 
-
-        n_later += len(chunk)-len(good_dexes[0])
-        n_total += len(chunk)
-        print('n_later: %.3e of %.3e' % (n_later, n_total))
-
-        m_stars = chunk[good_dexes]
+        n_total += len(m_stars)
 
         ri = m_stars['r'] - m_stars['i']
         iz = m_stars['i'] - m_stars['z']
         ri_dex = (ri/d_color).astype(int)
         iz_dex = (iz/d_color).astype(int)
         assert iz_dex.max() < 1000
-        color_color_dex = ri_dex*1000+iz_dex
+        color_color_dex = ri_dex*10000+iz_dex
         color_color_unique, color_color_counts = np.unique(color_color_dex,
                                                            return_counts=True)
 
-        ri_fin = color_color_unique//1000
-        iz_fin = color_color_unique%1000
+        ri_fin = color_color_unique//10000
+        iz_fin = color_color_unique%10000
 
         for ri, iz, ct in zip(ri_fin, iz_fin, color_color_counts):
             if ri in color_color_grid:
@@ -100,19 +94,26 @@ if __name__ == "__main__":
                                                   np.abs(xyz[2])<=bin[1]))
 
             local_m_stars = m_stars[local_dexes]
+            good_colors = np.where(np.logical_and(local_m_stars['r']-local_m_stars['i']<r_i_cutoff,
+                                                  local_m_stars['i']-local_m_stars['z']<i_z_cutoff))
 
-            prob = prob_of_type(local_m_stars['r']-local_m_stars['i'],
-                                local_m_stars['i']-local_m_stars['z']).transpose()
+            local_later = len(local_m_stars) - len(good_colors[0])
+            n_later += local_later
+            actual_m_stars = local_m_stars[good_colors]
 
-            assert prob.shape[0] == len(local_m_stars)
+            prob = prob_of_type(actual_m_stars['r']-actual_m_stars['i'],
+                                actual_m_stars['i']-actual_m_stars['z']).transpose()
+
+            assert prob.shape[0] == len(actual_m_stars)
 
             local_types = np.argmax(prob, axis=1)
-            assert len(local_types) == len(local_m_stars)
+            assert len(local_types) == len(actual_m_stars)
 
             unique_types, unique_counts = np.unique(local_types,
                                                     return_counts=True)
             for tt, cc in zip(unique_types, unique_counts):
                 star_counts[bin]['M%d' % tt] += cc
+            star_counts[bin]['later'] += local_later
 
     for bin in z_bins:
         out_name = os.path.join(args.out_dir,
@@ -122,6 +123,7 @@ if __name__ == "__main__":
         with open(out_name, 'w') as output_file:
             for ix in range(args.max_type+1):
                 output_file.write('M%d: %d\n' % (ix, star_counts[bin]['M%d' % ix]))
+            output_file.write('later: %d\n' % star_counts[bin]['later'])
 
     out_name = os.path.join(args.out_dir,
                             'color_color_grid_%s.txt' % args.suffix)
