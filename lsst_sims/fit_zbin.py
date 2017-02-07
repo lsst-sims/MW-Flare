@@ -26,6 +26,38 @@ class LinearMeanGP(GaussianProcess):
 
         return self._intercept + self._slope*pt_list
 
+class ForcedMeanGP(GaussianProcess):
+
+    def __init__(self, covariogram, mean):
+        self._forced_mean = mean
+        super(ForcedMeanGP, self).__init__(covariogram)
+
+    def mean_fn(self, pt_list):
+        return self._forced_mean
+
+def get_pop_fractions(z_min):
+    table_list = ['0870', '1100', '1160',
+                  '1180','1200', '1220',
+                  '1250', '1400']
+
+    stat_dir = 'output'
+    output_dict = {}
+    for table_name in table_list:
+        full_name = os.path.join(stat_dir,
+                                 'mdwarf_count_%s_%d_%d.txt' %
+                                 (table_name, z_min, z_min+25))
+
+        with open(full_name, 'r') as input_file:
+            for line in input_file:
+                vv = line.split()
+                tag = vv[0].replace(':','')
+                ct = int(vv[1])
+                if tag not in output_dict:
+                    output_dict[tag] = ct
+                else:
+                    output_dict[tag] += ct
+
+    return output_dict
 
 if __name__ == "__main__":
 
@@ -58,7 +90,19 @@ if __name__ == "__main__":
     covar = Covariogram(kernel)
     covar.nugget = nugget
     if args.anchor is None:
-        gp = GaussianProcess(covar)
+        z_min = int(args.infile.split('_')[2])
+        ct_dict = get_pop_fractions(z_min)
+        tot_stars = 0
+        active_stars = 0.0
+        for cc, ff in zip(data['class'], data['frac']):
+            tag = 'M%d' % int(cc)
+            if tag in ct_dict:
+                tot_stars += ct_dict[tag]
+                active_stars += ff*ct_dict[tag]
+        mean = active_stars/float(tot_stars)
+        print 'setting mean to ',mean
+
+        gp = ForcedMeanGP(covar, mean)
     else:
         gp = LinearMeanGP(covar,
                           (args.anchor[0], args.anchor[1]),
