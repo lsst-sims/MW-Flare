@@ -96,7 +96,7 @@ if __name__ == "__main__":
         forced_mean = active_stars/float(tot_stars)
         print 'setting mean to ',forced_mean
 
-        gp = ForcedMeanGP(covar, mean)
+        gp = ForcedMeanGP(covar, forced_mean)
     else:
         gp = LinearMeanGP(covar,
                           (args.anchor[0], args.anchor[1]),
