@@ -93,7 +93,7 @@ if __name__ == "__main__":
     plt.figsize = (30,30)
 
     control_dtype = np.dtype([('z', float),  ('frac', float)])
-    control_data = np.genfromtxt('activity_rate_Hilton_et_al_2010.txt',
+    control_data = np.genfromtxt('data/activity_rate_Hilton_et_al_2010.txt',
                                  dtype=control_dtype)
 
     plt.plot(control_data['z'], control_data['frac'], color='r')
