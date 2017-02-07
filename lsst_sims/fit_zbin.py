@@ -5,6 +5,7 @@ import copy
 import argparse
 
 from gaussian_process import ExpSquaredKernel, Covariogram, GaussianProcess
+from gaussian_process import ForcedMeanGP
 
 class LinearMeanGP(GaussianProcess):
 
@@ -26,14 +27,6 @@ class LinearMeanGP(GaussianProcess):
 
         return self._intercept + self._slope*pt_list
 
-class ForcedMeanGP(GaussianProcess):
-
-    def __init__(self, covariogram, mean):
-        self._forced_mean = mean
-        super(ForcedMeanGP, self).__init__(covariogram)
-
-    def mean_fn(self, pt_list):
-        return self._forced_mean
 
 def get_pop_fractions(z_min):
     table_list = ['0870', '1100', '1160',

@@ -9,7 +9,8 @@ import copy
 
 
 __all__ = ["KernelBase", "ExpSquaredKernel",
-           "Covariogram", "GaussianProcess"]
+           "Covariogram", "GaussianProcess",
+           "ForcedMeanGP"]
 
 
 class KernelBase(object):
@@ -253,3 +254,13 @@ class GaussianProcess(object):
             output.append(self.mean_fn(pt) + ans)
 
         return np.array(output)
+
+
+class ForcedMeanGP(GaussianProcess):
+
+    def __init__(self, covariogram, mean):
+        self._forced_mean = mean
+        super(ForcedMeanGP, self).__init__(covariogram)
+
+    def mean_fn(self, pt_list):
+        return self._forced_mean
