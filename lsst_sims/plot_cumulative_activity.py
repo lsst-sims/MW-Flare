@@ -96,24 +96,40 @@ if __name__ == "__main__":
     control_data = np.genfromtxt('data/activity_rate_Hilton_et_al_2010.txt',
                                  dtype=control_dtype)
 
-    plt.plot(control_data['z'], control_data['frac'], color='r')
-
+    plt.subplot(2,2,1)
+    hh, = plt.plot(control_data['z'], control_data['frac'], color='r')
+    header_list = [hh]
+    title_list = ['Hilton et al. 2010']
 
     # mutliply by 0.9 because 0.9 of the active stars in
     # Hilton et al. Figure 12 occcur by the 225 pc mark,
     # where our data runs out
-    plt.plot(z_bin, 0.9*np.cumsum(n_active)/total_active, marker='o', color='b')
-    plt.plot(z_bin, 0.9*np.cumsum(n_total)/n_total.sum(), marker='x', color='k')
-    plt.xlabel('distance from Galactic plane (pc)', fontsize=15)
-    plt.ylabel('cumulative active fraction', fontsize=15)
-    plt.ylim(0,1.1)
-    plt.xlim(-100, 250)
-    xticks = [xx for xx in range(-100, 250, 10)]
+    hh, = plt.plot(z_bin, 0.9*np.cumsum(n_active)/total_active, marker='o', color='b')
+    header_list.append(hh)
+    title_list.append('this model')
+    plt.xlabel('distance from Galactic plane (pc)', fontsize=10)
+    plt.ylabel('cumulative active fraction', fontsize=10)
+    plt.ylim(0,1.2)
+    plt.xlim(0, 250)
+    xticks = [xx for xx in range(0, 250, 10)]
     xlabels = ['%d' % xx if ii%10==0 else '' for ii, xx in enumerate(xticks)]
     plt.xticks(xticks, xlabels)
-    yticks = [xx for xx in np.arange(0.0, 1.1, 0.05)]
+    yticks = [xx for xx in np.arange(0.0, 1.2, 0.1)]
     ylabels = ['%.1f' % xx if ii%4 ==0 else '' for ii, xx in enumerate(yticks)]
     plt.yticks(yticks, ylabels)
+    plt.legend(header_list, title_list, fontsize=10)
 
-    xticks = np.array
+    plt.subplot(2,2,2)
+    plt.plot(z_bin, n_total, marker='x', color='k')
+    plt.xlabel('distance from Galactic plane (pc)', fontsize=10)
+    plt.ylabel('number of stars', fontsize=10)
+    plt.xlim(0, 250)
+    xticks = [xx for xx in range(0, 250, 10)]
+    xlabels = ['%d' % xx if ii%10==0 else '' for ii, xx in enumerate(xticks)]
+    plt.xticks(xticks, xlabels)
+    #yticks = [xx for xx in np.arange(0.0, 1.1, 0.05)]
+    #ylabels = ['%.1f' % xx if ii%4 ==0 else '' for ii, xx in enumerate(yticks)]
+    #plt.yticks(yticks, ylabels)
+
+    plt.tight_layout()
     plt.savefig(os.path.join(fig_dir, "hilton_2010_fig12.png"))
