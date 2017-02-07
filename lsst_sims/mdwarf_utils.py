@@ -83,7 +83,7 @@ def prob_of_type(r_i, i_z):
                           ('cov_00', float), ('cov_01', float),
                           ('cov_10', float), ('cov_11', float)])
 
-        input_data = np.genfromtxt('color_covar_data_Kowalski_et_al_2009.txt',
+        input_data = np.genfromtxt('color_covar_data_West_et_al_2011.txt',
                                    dtype=dtype)
         prob_of_type.r_i = []
         prob_of_type.i_z = []
