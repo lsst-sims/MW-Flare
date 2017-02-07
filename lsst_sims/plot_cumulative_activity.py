@@ -75,10 +75,13 @@ if __name__ == "__main__":
                 with open(ct_name, "r") as input_file:
                     for line in input_file:
                         vv = line.split()
-                        spec_class = int(vv[0].replace('M','').replace(':',''))
+                        if vv[0].startswith('M'):
+                            spec_class = int(vv[0].replace('M','').replace(':',''))
+                        else:
+                            spec_class = 12.0
                         ct = int(vv[1])
                         frac = gp.regress([float(spec_class)])
-                        n_active[-1] += frac*ct
+                        n_active[-1] += frac[0]*ct
 
     z_bin = np.array(z_bin)
     n_active = np.array(n_active)
