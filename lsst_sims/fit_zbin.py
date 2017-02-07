@@ -136,6 +136,8 @@ if __name__ == "__main__":
         output_file.write('# hyper params: %.3f %.3f\n' %
                           (gp.covariogram.hyper_params[0],
                            gp.covariogram.hyper_params[1]))
+        for ix, nn in enumerate(gp.covariogram.nugget):
+            output_file.write('# nugget %d %.9g\n' % (ix, nn))
         if forced_mean is not None:
             output_file.write('# mean %.9g\n' % forced_mean)
 
