@@ -6,40 +6,6 @@ import argparse
 
 from gaussian_process import ExpSquaredKernel, Covariogram, GaussianProcess
 
-class AdaptiveExpSquaredKernel(ExpSquaredKernel):
-
-    def __init__(self, training_pts=None):
-        """
-        dim=1 means there is one length scale hyper parameter
-        dim=N means that each dimension has its own length scale
-        """
-        self._training_pts = training_pts
-        super(AdaptiveExpSquaredKernel, self).__init__(dim=1)
-
-    def _eval(self, pt1, pt2_list):
-        if isinstance(pt1, float):
-            ddsq = np.power((pt1-pt2_list), 2)
-            med = np.median(np.power(pt1-self._training_pts,2))
-        else:
-            ddsq = np.power((pt1-pt2_list),2).sum(axis=1)
-            med = np.median(np.power(pt1-self._training_pts,2).sum(axis=1), axis=1)
-
-        if med<1.0e-20:
-            print 'med ',med
-            print 'pt ',pt1
-
-            print 'ddsq ',ddsq
-            exit(1)
-
-        return np.exp(-0.5*ddsq/(med*np.power(self._hyper_params,2)))
-
-
-class UnityGP(GaussianProcess):
-    def mean_fn(self, pt):
-        if not hasattr(self, '_fn_med'):
-            self._fn_med = np.median(self.training_fn)
-        return self._fn_med
-
 class LastThreeMeanGP(GaussianProcess):
 
     def _calc_mean(self, pt):
@@ -123,7 +89,7 @@ if __name__ == "__main__":
     covar = Covariogram(kernel)
     covar.nugget = nugget
     if args.anchor is None:
-        gp = UnityGP(covar)
+        gp = GaussianProcess(covar)
     else:
         gp = LinearMeanGP(covar,
                           (args.anchor[0], args.anchor[1]),
