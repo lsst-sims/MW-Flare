@@ -24,9 +24,7 @@ class LinearMeanGP(GaussianProcess):
         else:
             pts = pt_list
 
-        return np.where(pts<self._max,
-                        self._intercept + self._slope*pt_list,
-                        self._asymptote)
+        return self._intercept + self._slope*pt_list
 
 
 if __name__ == "__main__":
