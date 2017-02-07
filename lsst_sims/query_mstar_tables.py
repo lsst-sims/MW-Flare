@@ -120,8 +120,6 @@ if __name__ == "__main__":
             for ix in range(8):
                 output_file.write('M%d: %d\n' % (ix, star_counts[bin]['M%d' % ix]))
 
-            output_file.write('later: %d\n', n_later)
-
     out_name = os.path.join(args.out_dir,
                             'color_color_grid_%s.txt' % args.suffix)
     with open(out_name, 'w') as output_file:
