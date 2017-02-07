@@ -30,6 +30,7 @@ if __name__ == "__main__":
 
     z_bin = []
     n_active = []
+    n_total = []
 
     kernel = ExpSquaredKernel(dim=1)
     covariogram = Covariogram(kernel)
@@ -67,6 +68,7 @@ if __name__ == "__main__":
             gp.build(gp_data['class'], gp_data['frac'])
             z_bin.append(float(z_min)+0.5*float(z_step))
             n_active.append(0.0)
+            n_total.append(0.0)
 
             for table in table_list:
                 ct_name = os.path.join(ct_dir,
@@ -82,9 +84,11 @@ if __name__ == "__main__":
                         ct = int(vv[1])
                         frac = gp.regress([float(spec_class)])
                         n_active[-1] += frac[0]*ct
+                        n_total[-1] += ct
 
     z_bin = np.array(z_bin)
     n_active = np.array(n_active)
+    n_total = np.array(n_total)
     total_active = n_active.sum()
     plt.figsize = (30,30)
 
@@ -98,7 +102,8 @@ if __name__ == "__main__":
     # mutliply by 0.9 because 0.9 of the active stars in
     # Hilton et al. Figure 12 occcur by the 225 pc mark,
     # where our data runs out
-    plt.plot(z_bin, 0.9*np.cumsum(n_active)/total_active, marker='o')
+    plt.plot(z_bin, 0.9*np.cumsum(n_active)/total_active, marker='o', color='b')
+    plt.plot(z_bin, 0.9*np.cumsum(n_total)/n_total.sum(), marker='x', color='k')
     plt.xlabel('distance from Galactic plane (pc)', fontsize=15)
     plt.ylabel('cumulative active fraction', fontsize=15)
     plt.ylim(0,1.1)
