@@ -138,18 +138,30 @@ if __name__ == "__main__":
     plt.xticks(xticks, xlabels)
 
     plt.subplot(2,2,3)
+    data_dtype = np.dtype([('class', int), ('frac', float)])
+    data = np.genfromtxt('data/active_fraction_by_type_West_et_al_2008.txt',
+                         dtype=data_dtype)
+
+    hh, = plt.plot(data['class'], data['frac'], color='r')
+    header_list = [hh]
+    label_list = ['West et al 2008 fig 3']
+
     type_arr = list(type_ct.keys())
     type_arr.sort()
     type_ct_arr = np.array([type_ct[cc] for cc in type_arr])
     type_total_arr = np.array([type_total[cc] for cc in type_arr])
-    plt.plot(type_arr, type_ct_arr/type_total_arr, linestyle='', marker='o')
+    hh, = plt.plot(type_arr, type_ct_arr/type_total_arr, marker='o', linestyle='')
+    header_list.append(hh)
+    label_list.append('this model')
     plt.xlabel('spectral class', fontsize=10)
     plt.ylabel('fraction active', fontsize=10)
     xticks = range(10)
     xlabels = ['M%d' %ii for ii in xticks]
     xticks.append(12)
     xlabels.append('later')
-    plt.xticks(xticks, xlabels)
+    plt.xticks(xticks, xlabels,fontsize=10)
+    plt.legend(header_list, label_list, fontsize=7, loc=2)
+    plt.xlim(-2,13)
 
     plt.tight_layout()
     plt.savefig(os.path.join(fig_dir, "hilton_2010_fig12.png"))
