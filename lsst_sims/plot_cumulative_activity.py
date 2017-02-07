@@ -85,6 +85,13 @@ if __name__ == "__main__":
     total_active = n_active.sum()
     plt.figsize = (30,30)
 
+    control_dtype = np.dtype([('z', float),  ('frac', float)])
+    control_data = np.genfromtxt('activity_rate_Hilton_et_al_2010.txt',
+                                 dtype=control_dtype)
+
+    plt.plot(control_data['z'], control_data['frac'], color='r')
+
+
     # mutliply by 0.9 because 0.9 of the active stars in
     # Hilton et al. Figure 12 occcur by the 225 pc mark,
     # where our data runs out
