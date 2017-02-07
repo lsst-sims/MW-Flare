@@ -1,7 +1,7 @@
 # this is a by-eye reconstruction of the data underlying the dashed
 # gray curve ("active stars") in Figure 12 of Hilton et al 2010
 # (AJ 140, 1402)
-# z, fraction
+# z, cumulative fraction
 50 0.05
 80 0.25
 100 0.43
