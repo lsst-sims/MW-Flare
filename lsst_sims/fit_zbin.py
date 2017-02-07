@@ -6,34 +6,6 @@ import argparse
 
 from gaussian_process import ExpSquaredKernel, Covariogram, GaussianProcess
 
-class LastThreeMeanGP(GaussianProcess):
-
-    def _calc_mean(self, pt):
-        if self._mean_fn is None:
-            self._mean_fn = np.mean(self.training_fn)
-            wanted_dex = np.argsort(self.training_pts)[:3]
-            sqrt_nugget = np.sqrt(self.covariogram.nugget)
-            mean_num = (self.training_fn[wanted_dex]/sqrt_nugget[wanted_dex]).sum()
-            mean_denom = (1.0/sqrt_nugget[wanted_dex]).sum()
-            self._extrap_mean = mean_num/mean_denom
-
-
-        if pt < self.training_pts.max():
-            return self._mean_fn
-
-        return self._extrap_mean
-
-    def mean_fn(self, pt_list):
-
-        if isinstance(pt_list, float):
-            return self._calc_mean(pt_list)
-        else:
-            output = []
-            for pp in pt_list:
-                output.append(self._calc_mean(pp))
-            return np.array(output)
-
-
 class LinearMeanGP(GaussianProcess):
 
     def __init__(self,covariogram,pt1,pt2,asymptote):
