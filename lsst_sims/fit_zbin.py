@@ -145,5 +145,6 @@ if __name__ == "__main__":
                            gp.covariogram.hyper_params[1]))
         if forced_mean is not None:
             output_file.write('# mean %.9g\n' % forced_mean)
+
         for xx, yy in zip(x_test, y_test):
             output_file.write("%e %e\n" % (xx, yy))
