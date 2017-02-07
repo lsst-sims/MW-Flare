@@ -17,6 +17,9 @@ if __name__ == "__main__":
     parser.add_argument('--out_dir', type=str, help='output directory',
                         default='output')
 
+    parser.add_argument('--max_type', type=int, help='maximum M sub-type',
+                        default=8)
+
     args = parser.parse_args()
     if args.suffix is None:
         raise RuntimeError("Must specify a suffix")
@@ -40,7 +43,7 @@ if __name__ == "__main__":
     star_counts = {}
     for bin in z_bins:
         star_counts[bin] = {}
-        for ix in range(8):
+        for ix in range(args.max_type+1):
             star_counts[bin]['M%d' % ix] = 0
 
     table_name = 'stars_mlt_part_%s' % args.suffix
@@ -117,7 +120,7 @@ if __name__ == "__main__":
                                 (args.suffix, bin[0], bin[1]))
 
         with open(out_name, 'w') as output_file:
-            for ix in range(8):
+            for ix in range(args.max_type+1):
                 output_file.write('M%d: %d\n' % (ix, star_counts[bin]['M%d' % ix]))
 
     out_name = os.path.join(args.out_dir,
