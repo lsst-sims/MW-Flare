@@ -89,6 +89,7 @@ if __name__ == "__main__":
     kernel = ExpSquaredKernel(dim=1)
     covar = Covariogram(kernel)
     covar.nugget = nugget
+    forced_mean = None
     if args.anchor is None:
         z_min = int(args.infile.split('_')[2])
         ct_dict = get_pop_fractions(z_min)
@@ -99,8 +100,8 @@ if __name__ == "__main__":
             if tag in ct_dict:
                 tot_stars += ct_dict[tag]
                 active_stars += ff*ct_dict[tag]
-        mean = active_stars/float(tot_stars)
-        print 'setting mean to ',mean
+        forced_mean = active_stars/float(tot_stars)
+        print 'setting mean to ',forced_mean
 
         gp = ForcedMeanGP(covar, mean)
     else:
@@ -142,5 +143,7 @@ if __name__ == "__main__":
         output_file.write('# hyper params: %.3f %.3f\n' %
                           (gp.covariogram.hyper_params[0],
                            gp.covariogram.hyper_params[1]))
+        if forced_mean is not None:
+            output_file.write('# mean %.9g\n' % forced_mean)
         for xx, yy in zip(x_test, y_test):
             output_file.write("%e %e\n" % (xx, yy))
