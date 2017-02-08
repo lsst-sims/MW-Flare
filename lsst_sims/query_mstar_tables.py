@@ -93,7 +93,7 @@ if __name__ == "__main__":
                 color_color_grid[ri][iz] = ct
 
         xyz = xyz_from_lon_lat_px(m_stars['lon'], m_stars['lat'],
-                                  m_stars['px'])
+                                  0.001*m_stars['px'])
 
 
         # count the number of each type of star in each bin in z
