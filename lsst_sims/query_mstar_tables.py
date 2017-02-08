@@ -26,8 +26,8 @@ if __name__ == "__main__":
 
     # from Figure 2 of Kowalski et al 2009 (AJ 138, 633)
     # anything outside these bounds is considered later than M-dwarf
-    r_i_cutoff = 2.49 + 3*0.027
-    i_z_cutoff = 1.35 + 3*0.0095
+    r_i_cutoff = 2.70 + 3*0.04
+    i_z_cutoff = 1.71 + 3*0.0324
     d_color = 0.01
     n_later = 0
     n_total = 0
