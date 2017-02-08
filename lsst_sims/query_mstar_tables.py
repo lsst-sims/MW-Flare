@@ -130,7 +130,7 @@ if __name__ == "__main__":
         good_colors = np.where(np.logical_and(m_stars['r']-m_stars['i']<r_i_cutoff,
                                               m_stars['i']-m_stars['z']<i_z_cutoff))
         actual_m_stars = m_stars[good_colors]
-        local_z = xyz[2][good_colors]
+        local_z = np.abs(xyz[2][good_colors])
         local_z_dex = np.round(local_z/d_z).astype(int)
         local_z_dex_quant = np.where(local_z_dex<n_z_grid, local_z_dex, n_z_grid-1)
         for iz in np.unique(local_z_dex_quant):
@@ -147,7 +147,7 @@ if __name__ == "__main__":
                                             m_stars['i']-m_stars['z']>=i_z_cutoff))
 
         later_stars = m_stars[bad_colors]
-        local_z = xyz[2][bad_colors]
+        local_z = np.abs(xyz[2][bad_colors])
         local_z_dex = np.round(local_z/d_z).astype(int)
         local_z_dex_quant = np.where(local_z_dex<n_z_grid, local_z_dex, n_z_grid-1)
         for iz in np.unique(local_z_dex_quant):
