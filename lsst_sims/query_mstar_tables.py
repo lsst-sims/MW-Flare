@@ -40,12 +40,12 @@ if __name__ == "__main__":
         os.mkdir(args.out_dir)
 
     color_color_grid = {}
-    star_counts = {}
+    star_counts_zbin = {}
     for bin in z_bins:
-        star_counts[bin] = {}
+        star_counts_zbin[bin] = {}
         for ix in range(args.max_type+1):
-            star_counts[bin]['M%d' % ix] = 0
-        star_counts[bin]['later'] = 0
+            star_counts_zbin[bin]['M%d' % ix] = 0
+        star_counts_zbin[bin]['later'] = 0
 
     table_name = 'stars_mlt_part_%s' % args.suffix
     db = DBObject(database='LSSTCATSIM', host='fatboy.phys.washington.edu',
@@ -112,8 +112,8 @@ if __name__ == "__main__":
             unique_types, unique_counts = np.unique(local_types,
                                                     return_counts=True)
             for tt, cc in zip(unique_types, unique_counts):
-                star_counts[bin]['M%d' % tt] += cc
-            star_counts[bin]['later'] += local_later
+                star_counts_zbin[bin]['M%d' % tt] += cc
+            star_counts_zbin[bin]['later'] += local_later
 
     for bin in z_bins:
         out_name = os.path.join(args.out_dir,
@@ -122,8 +122,8 @@ if __name__ == "__main__":
 
         with open(out_name, 'w') as output_file:
             for ix in range(args.max_type+1):
-                output_file.write('M%d: %d\n' % (ix, star_counts[bin]['M%d' % ix]))
-            output_file.write('later: %d\n' % star_counts[bin]['later'])
+                output_file.write('M%d: %d\n' % (ix, star_counts_zbin[bin]['M%d' % ix]))
+            output_file.write('later: %d\n' % star_counts_zbin[bin]['later'])
 
     out_name = os.path.join(args.out_dir,
                             'color_color_grid_%s.txt' % args.suffix)
