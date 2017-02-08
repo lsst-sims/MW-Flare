@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     dtype = np.dtype([('gal_l', float), ('gal_b', float), ('px', float)])
 
-    query = 'SELECT TOP 500000 gal_l, gal_b, parallax FROM %s' % args.table
+    query = 'SELECT gal_l, gal_b, parallax FROM %s' % args.table
     chunk_iter = db.get_chunk_iterator(query, chunk_size=100000, dtype=dtype)
     for chunk in chunk_iter:
         xyz = xyz_from_lon_lat_px(chunk['gal_l'], chunk['gal_b'],
