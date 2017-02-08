@@ -35,6 +35,8 @@ if __name__ == "__main__":
     # meant to correspond with figure 4 of West et al. 2008
     # (AJ 135, 785)
     z_bins = [(ii-25.0, ii) for ii in np.arange(25.0, 250.0, 25.0)]
+    d_z = 10.0
+    n_z_grid = 70
 
     if not os.path.exists(args.out_dir):
         os.mkdir(args.out_dir)
@@ -46,6 +48,10 @@ if __name__ == "__main__":
         for ix in range(args.max_type+1):
             star_counts_zbin[bin]['M%d' % ix] = 0
         star_counts_zbin[bin]['later'] = 0
+
+    star_counts_z_grid = {}
+    for ix in range(args.max_type+2):
+        star_counts_z_grid[ix] = np.zeros(n_z_grid)
 
     table_name = 'stars_mlt_part_%s' % args.suffix
     db = DBObject(database='LSSTCATSIM', host='fatboy.phys.washington.edu',
@@ -87,8 +93,12 @@ if __name__ == "__main__":
                 color_color_grid[ri][iz] = ct
 
         xyz = xyz_from_lon_lat_px(m_stars['lon'], m_stars['lat'],
-                                  0.001*m_stars['px'])
+                                  m_stars['px'])
 
+
+        # count the number of each type of star in each bin in z
+        # where bins are defined as in West et al 2008
+        # (AJ 135, 785)
         for bin in z_bins:
             local_dexes = np.where(np.logical_and(np.abs(xyz[2])>bin[0],
                                                   np.abs(xyz[2])<=bin[1]))
@@ -115,6 +125,36 @@ if __name__ == "__main__":
                 star_counts_zbin[bin]['M%d' % tt] += cc
             star_counts_zbin[bin]['later'] += local_later
 
+        # count stars by type as a function of z on a grid defined by
+        # d_z and n_z_grid
+        good_colors = np.where(np.logical_and(m_stars['r']-m_stars['i']<r_i_cutoff,
+                                              m_stars['i']-m_stars['z']<i_z_cutoff))
+        actual_m_stars = m_stars[good_colors]
+        local_z = xyz[2][good_colors]
+        local_z_dex = np.round(local_z/d_z).astype(int)
+        local_z_dex_quant = np.where(local_z_dex<n_z_grid, local_z_dex, n_z_grid-1)
+        for iz in np.unique(local_z_dex_quant):
+            local_dexes = np.where(local_z_dex_quant == iz)
+            local_m_stars = actual_m_stars[local_dexes]
+            prob = prob_of_type(local_m_stars['r']-local_m_stars['i'],
+                                local_m_stars['i']-local_m_stars['z']).transpose()
+            local_types = np.argmax(prob, axis=1)
+            unique_types, unique_counts = np.unique(local_types, return_counts=True)
+            for tt, cc in zip(unique_types, unique_counts):
+                star_counts_z_grid[tt][iz] += cc
+
+        bad_colors = np.where(np.logical_or(m_stars['r']-m_stars['i']>=r_i_cutoff,
+                                            m_stars['i']-m_stars['z']>=i_z_cutoff))
+
+        later_stars = m_stars[bad_colors]
+        local_z = xyz[2][bad_colors]
+        local_z_dex = np.round(local_z/d_z).astype(int)
+        local_z_dex_quant = np.where(local_z_dex<n_z_grid, local_z_dex, n_z_grid-1)
+        for iz in np.unique(local_z_dex_quant):
+            local_dexes = np.where(local_z_dex_quant == iz)
+            star_counts_z_grid[args.max_type+1] += len(local_dexes[0])
+
+
     for bin in z_bins:
         out_name = os.path.join(args.out_dir,
                                 'mdwarf_count_%s_%d_%d.txt' %
@@ -137,5 +177,11 @@ if __name__ == "__main__":
             for iz in iz_list:
                 output_file.write('%.2f %.2f %d\n' % (ri*d_color, iz*d_color,
                                                       color_color_grid[ri][iz]))
+
+    for tt in star_counts_z_grid:
+        out_name = os.path.join(args.out_dir, "mdwarf_count_%s_M%d.txt" % (args.suffix, tt))
+        with open(out_name, 'w') as output_file:
+            for iz in range(n_z_grid):
+                output_file.write('%e %e\n' % (iz*d_z, star_counts_z_grid[tt][iz]))
 
     print("n_later %d of %d\n" % (n_later, n_total))
