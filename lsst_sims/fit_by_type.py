@@ -76,6 +76,11 @@ if __name__ == "__main__":
                      marker='o', linestyle='')
         plt.plot(xx_test, yy_test, color='r')
         plt.title(spec_type, fontsize=10)
+        plt.ylim(0.0, 1.1)
+        yticks = np.arange(0.0, 1.15, 0.1)
+        ylabels = ['%.1f' % xx if ii%4==0 else ''
+                   for ii, xx in enumerate(yticks)]
+        plt.yticks(yticks,ylabels)
 
     plt.tight_layout()
     plt.savefig(os.path.join(plot_dir, 'gp_by_type.png'))
