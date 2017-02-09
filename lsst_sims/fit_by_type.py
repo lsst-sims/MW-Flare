@@ -10,6 +10,17 @@ import os
 
 from gaussian_process import ExpSquaredKernel, Covariogram, GaussianProcess
 
+class LinearMeanGP(GaussianProcess):
+
+    def mean_fn(self, pt_list):
+        if not hasattr(self, '_slope'):
+            self._slope = (self.training_fn[-1]-self.training_fn[0])
+            self._slope /= (self.training_pts[-1]-self.training_pts[0])
+
+            self._intercept = self.training_fn[0] - self._slope*self.training_pts[0]
+
+        return self._slope*pt_list + self._intercept
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
