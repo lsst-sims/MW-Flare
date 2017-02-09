@@ -1,4 +1,9 @@
 from __future__ import with_statement
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
 import argparse
 import numpy as np
 import os
@@ -20,7 +25,10 @@ if __name__ == "__main__":
     dtype = np.dtype([('z', float), ('frac', float),
                       ('min', float), ('max', float)])
 
-    for spec_type in type_list:
+    plot_dir = 'plots'
+    plt.figsize = (30, 30)
+
+    for i_fig, spec_type in enumerate(type_list):
         data_name = os.path.join(data_dir, '%s.txt' % spec_type)
         data = np.genfromtxt(data_name, dtype=dtype)
 
@@ -60,3 +68,14 @@ if __name__ == "__main__":
             yy_test = gp.regress(xx_test)
             for xx, yy in zip(xx_test, yy_test):
                 out_file.write('%e %e\n' % (xx, yy))
+
+        plt.subplot(3,3,i_fig+1)
+        plt.errorbar(data['z'], data['frac'],
+                     yerr = np.array([data['frac']-data['min'],
+                                      data['max']-data['frac']]),
+                     marker='o', linestyle='')
+        plt.plot(xx_test, yy_test, color='r')
+        plt.title(spec_type, fontsize=10)
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(plot_dir, 'gp_by_type.png'))
