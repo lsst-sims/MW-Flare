@@ -8,7 +8,7 @@ import argparse
 import numpy as np
 import os
 
-from gaussian_process import ExpSquaredKernel, Covariogram, ForcedMeanGP
+from gaussian_process import ExpSquaredKernel, Covariogram, GaussianProcess
 
 if __name__ == "__main__":
 
@@ -46,7 +46,7 @@ if __name__ == "__main__":
         covariogram = Covariogram(kernel)
         covariogram.nugget = nugget
 
-        gp = ForcedMeanGP(covariogram, data['frac'][-1])
+        gp = GaussianProcess(covariogram)
         max_like = None
         for ell in np.arange(10.0, 700.0, 10.0):
             for log_krig in np.arange(-3.0, 6.1, 0.1):
