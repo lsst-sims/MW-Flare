@@ -24,25 +24,28 @@ class LinearMeanGP(GaussianProcess):
 class ExpMeanGP(GaussianProcess):
 
     def _fit_tau(self):
+        floor_grid = np.arange(0.01, 0.3, 0.01)
         tau_grid = np.arange(10.0, 10000.0, 10.0)
         norm_grid = np.arange(0.0, 1.0, 0.05)
         chisq_best = None
         for tau in tau_grid:
             for norm in norm_grid:
-                yy = norm*np.exp(-1.0*self.training_pts/tau)
-                chisq = (np.power(yy-self.training_fn,2)/self.covariogram.nugget).sum()
-                if chisq_best is None or chisq<chisq_best:
-                    chisq_best = chisq
-                    self._tau = tau
-                    self._norm = norm
-        print self._norm, self._tau
+                for floor in floor_grid:
+                    yy = norm*np.exp(-1.0*self.training_pts/tau) + floor
+                    chisq = (np.power(yy-self.training_fn,2)/self.covariogram.nugget).sum()
+                    if chisq_best is None or chisq<chisq_best:
+                        chisq_best = chisq
+                        self._tau = tau
+                        self._norm = norm
+                        self._floor = floor
+        print self._norm, self._tau, self._floor
 
 
     def mean_fn(self, pt_list):
         if not hasattr(self, '_tau'):
             self._fit_tau()
 
-        return self._norm*np.exp(-1.0*pt_list/self._tau)
+        return self._norm*np.exp(-1.0*pt_list/self._tau) + self._floor
 
 if __name__ == "__main__":
 
