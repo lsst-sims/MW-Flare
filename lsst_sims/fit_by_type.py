@@ -8,44 +8,34 @@ import argparse
 import numpy as np
 import os
 
-from gaussian_process import ExpSquaredKernel, Covariogram, GaussianProcess
+def fit_to_exp_decay(xx_data, yy_data, sigma_data, xx_test):
 
-class LinearMeanGP(GaussianProcess):
+    tau_grid = np.arange(xx_data.min(), xx_data.max(), 0.1)
+    tau_best = None
+    aa_best = None
+    bb_best = None
+    error_best = None
+    sig_term = 1.0/np.power(sigma_data, 2)
+    gamma = 1.0/sig_term.sum()
+    for tau in tau_grid:
+        exp_term = np.exp(-1.0*xx_data/tau)
+        theta = (exp_term*sig_term).sum()
 
-    def mean_fn(self, pt_list):
-        if not hasattr(self, '_slope'):
-            self._slope = (self.training_fn[-1]-self.training_fn[0])
-            self._slope /= (self.training_pts[-1]-self.training_pts[0])
+        aa_num = (exp_term*yy_data*sig_term).sum() - theta*gamma*(yy_data*sig_term).sum()
+        aa_denom = (np.exp(-2.0*xx_data/tau)*sig_term).sum() - theta*theta*gamma
+        aa = aa_num/aa_denom
 
-            self._intercept = self.training_fn[0] - self._slope*self.training_pts[0]
+        bb = gamma*((yy_data - aa*exp_term)*sig_term).sum()
 
-        return self._slope*pt_list + self._intercept
+        err = np.power((yy_data - aa*np.exp(-1.0*xx_data/tau) - bb)/sigma_data, 2).sum()
+        if error_best is None or err<error_best:
+            error_best = err
+            aa_best = aa
+            bb_best = bb
+            tau_best = tau
 
-class ExpMeanGP(GaussianProcess):
+    return aa_best*np.exp(-1.0*xx_test/tau_best) + bb_best
 
-    def _fit_tau(self):
-        floor_grid = np.arange(0.01, 0.3, 0.01)
-        tau_grid = np.arange(10.0, 10000.0, 10.0)
-        norm_grid = np.arange(0.0, 1.0, 0.05)
-        chisq_best = None
-        for tau in tau_grid:
-            for norm in norm_grid:
-                for floor in floor_grid:
-                    yy = norm*np.exp(-1.0*self.training_pts/tau) + floor
-                    chisq = (np.power(yy-self.training_fn,2)/self.covariogram.nugget).sum()
-                    if chisq_best is None or chisq<chisq_best:
-                        chisq_best = chisq
-                        self._tau = tau
-                        self._norm = norm
-                        self._floor = floor
-        print self._norm, self._tau, self._floor
-
-
-    def mean_fn(self, pt_list):
-        if not hasattr(self, '_tau'):
-            self._fit_tau()
-
-        return self._norm*np.exp(-1.0*pt_list/self._tau) + self._floor
 
 if __name__ == "__main__":
 
@@ -53,8 +43,8 @@ if __name__ == "__main__":
     parser.add_argument("--outdir", type=str, default=None)
 
     args = parser.parse_args()
-    if args.outdir is None:
-        raise RuntimeError("need to specify an output directory")
+    #if args.outdir is None:
+    #    raise RuntimeError("need to specify an output directory")
 
     type_list = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8']
     data_dir = 'data/activity_by_type'
@@ -77,34 +67,8 @@ if __name__ == "__main__":
                 sigma = xx-nn
             nugget.append(np.power(sigma,2))
 
-        nugget = np.array(nugget)
-
-        kernel = ExpSquaredKernel(dim=1)
-        covariogram = Covariogram(kernel)
-        covariogram.nugget = nugget
-
-        gp = ExpMeanGP(covariogram)
-        max_like = None
-        for ell in np.arange(10.0, 700.0, 10.0):
-            for log_krig in np.arange(-3.0, 6.1, 0.1):
-                test_params = np.array([ell, np.power(10, log_krig)])
-                gp.covariogram.hyper_params = test_params
-                gp.build(data['z'], data['frac'])
-                like = gp.ln_likelihood()
-                if max_like is None or like>max_like:
-                    max_like = like
-                    best_params = test_params
-
-        print spec_type,best_params,max_like
-        gp.covariogram.hyper_params = best_params
-        gp.build(data['z'], data['frac'])
-
-        out_name = os.path.join(args.outdir, '%s_gp.txt' % spec_type)
-        with open(out_name, 'w') as out_file:
-            xx_test = np.arange(0.0, 1000.0, 10.0)
-            yy_test = gp.regress(xx_test)
-            for xx, yy in zip(xx_test, yy_test):
-                out_file.write('%e %e\n' % (xx, yy))
+        xx_test = np.arange(0.0, 1000.0, 1.0)
+        yy_test = fit_to_exp_decay(data['z'], data['frac'], nugget, xx_test)
 
         plt.subplot(3,3,i_fig+1)
         plt.errorbar(data['z'], data['frac'],
@@ -120,4 +84,4 @@ if __name__ == "__main__":
         plt.yticks(yticks,ylabels)
 
     plt.tight_layout()
-    plt.savefig(os.path.join(plot_dir, 'gp_by_type.png'))
+    plt.savefig(os.path.join(plot_dir, 'exp_decay_by_type.png'))
