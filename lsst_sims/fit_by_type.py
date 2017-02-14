@@ -34,7 +34,7 @@ def fit_to_exp_decay(xx_data, yy_data, sigma_data, xx_test):
             bb_best = bb
             tau_best = tau
 
-    return aa_best*np.exp(-1.0*xx_test/tau_best) + bb_best
+    return aa_best*np.exp(-1.0*xx_test/tau_best) + bb_best, aa_best, tau_best, bb_best
 
 
 if __name__ == "__main__":
@@ -43,8 +43,8 @@ if __name__ == "__main__":
     parser.add_argument("--outdir", type=str, default=None)
 
     args = parser.parse_args()
-    #if args.outdir is None:
-    #    raise RuntimeError("need to specify an output directory")
+    if args.outdir is None:
+        raise RuntimeError("need to specify an output directory")
 
     type_list = ['M0', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8']
     data_dir = 'data/activity_by_type'
@@ -68,7 +68,11 @@ if __name__ == "__main__":
             nugget.append(np.power(sigma,2))
 
         xx_test = np.arange(0.0, 1000.0, 1.0)
-        yy_test = fit_to_exp_decay(data['z'], data['frac'], nugget, xx_test)
+        yy_test, aa, tau, bb = fit_to_exp_decay(data['z'], data['frac'], nugget, xx_test)
+
+        with open(os.path.join(args.outdir, '%s_fit.txt' % spec_type), 'w') as output_file:
+            output_file.write('# a, tau, b (frac = A*exp(-z/tau) + b)\n')
+            output_file.write('%.9g %.9g %.9g\n' % (aa, tau, bb))
 
         plt.subplot(3,3,i_fig+1)
         plt.errorbar(data['z'], data['frac'],
