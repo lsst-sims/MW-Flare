@@ -1,5 +1,5 @@
 """
-This script will take the GP fits from fit_zbins.py and multiply by
+This script will take the fits fit_by_type.py and multiply by
 the number of stars in each spectral class in each z bin to try to
 reproduce the dashed line ("Active Stars") in Figure 12 of Hilton et al 2010
 (AJ 140, 1402)
@@ -13,8 +13,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-from gaussian_process import ExpSquaredKernel, Covariogram
-from gaussian_process import ForcedMeanGP
 
 if __name__ == "__main__":
 
@@ -34,66 +32,59 @@ if __name__ == "__main__":
     type_ct = {}
     type_total = {}
 
-    kernel = ExpSquaredKernel(dim=1)
-    covariogram = Covariogram(kernel)
+    aa_dict = {}
+    bb_dict = {}
+    tau_dict = {}
+    for spec_type in range(9):
+        spec_name = 'M%d' % spec_type
+        with open(os.path.join('output', '%s_fit.txt' % spec_name)) as input_file:
+            lines = input_file.readlines()
+            params = lines[1].split()
+            aa = float(params[0])
+            tau = float(params[1])
+            bb = float(params[2])
 
-    gp_dtype = np.dtype([('class', float), ('frac', float),
-                         ('minus', float), ('plus', float)])
+        aa_dict[spec_type] = aa
+        bb_dict[spec_type] = bb
+        tau_dict[spec_type] = tau
 
     for z_min in range(25, 201, z_step):
-        gp_data_name = os.path.join("z_bins",
-                                    "bin_%d_%d.txt" % (z_min, z_min+z_step))
 
-        gp_data = np.genfromtxt(gp_data_name, dtype=gp_dtype)
+        z_bin.append(float(z_min)+0.5*float(z_step))
+        n_active.append(0.0)
+        n_total.append(0.0)
 
-        gp_name = os.path.join(gp_dir, "gp_%d_%d.txt" % (z_min, z_min+z_step))
-        with open(gp_name, "r") as input_file:
-            gp_lines = input_file.readlines()
-            hp_line = gp_lines[1].split()[3:]
-            hyper_params = np.array([float(hp_line[0]), float(hp_line[1])])
-            nugget = []
-            for line in gp_lines:
-                if line[0] != '#':
-                    break
-                if 'nugget' in line:
-                    nugget.append(float(line.split()[3]))
+        for table in table_list:
+            ct_name = os.path.join(ct_dir,
+                                   'mdwarf_count_%s_%d_%d.txt' %
+                                   (table, z_min, z_min+z_step))
+            with open(ct_name, "r") as input_file:
+                for line in input_file:
+                    vv = line.split()
+                    if vv[0].startswith('M'):
+                        spec_class = int(vv[0].replace('M','').replace(':',''))
+                    else:
+                        spec_class = 12
+                    ct = int(vv[1])
+                    if spec_class<9:
+                        aa = aa_dict[spec_class]
+                        bb = bb_dict[spec_class]
+                        tau = tau_dict[spec_class]
+                    else:
+                        aa = aa_dict[8]
+                        bb = bb_dict[8]
+                        tau = tau_dict[8]
+                    frac = aa*np.exp(-1.0*z_bin[-1]/tau) + bb
 
-            nugget = np.array(nugget)
-            for line in gp_lines:
-                if line[0]!='#':
-                    break
-                if 'mean' in line:
-                    forced_mean = float(line.split()[2])
+                    n_active[-1] += frac*ct
+                    n_total[-1] += ct
 
-            gp = ForcedMeanGP(covariogram, forced_mean)
-            gp.covariogram.nugget = nugget
-            gp.build(gp_data['class'], gp_data['frac'])
-            z_bin.append(float(z_min)+0.5*float(z_step))
-            n_active.append(0.0)
-            n_total.append(0.0)
-
-            for table in table_list:
-                ct_name = os.path.join(ct_dir,
-                                       'mdwarf_count_%s_%d_%d.txt' %
-                                       (table, z_min, z_min+z_step))
-                with open(ct_name, "r") as input_file:
-                    for line in input_file:
-                        vv = line.split()
-                        if vv[0].startswith('M'):
-                            spec_class = int(vv[0].replace('M','').replace(':',''))
-                        else:
-                            spec_class = 12
-                        ct = int(vv[1])
-                        frac = gp.regress([float(spec_class)])
-                        n_active[-1] += frac[0]*ct
-                        n_total[-1] += ct
-
-                        if spec_class in type_ct:
-                            type_ct[spec_class] += frac[0]*ct
-                            type_total[spec_class] += ct
-                        else:
-                            type_ct[spec_class] = frac[0]*ct
-                            type_total[spec_class] = ct
+                    if spec_class in type_ct:
+                        type_ct[spec_class] += frac*ct
+                        type_total[spec_class] += ct
+                    else:
+                        type_ct[spec_class] = frac*ct
+                        type_total[spec_class] = ct
 
     z_bin = np.array(z_bin)
     n_active = np.array(n_active)
