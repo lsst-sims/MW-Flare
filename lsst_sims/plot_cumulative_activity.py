@@ -110,12 +110,12 @@ if __name__ == "__main__":
     title_list.append('this model')
     plt.xlabel('distance from Galactic plane (pc)', fontsize=10)
     plt.ylabel('cumulative active fraction', fontsize=10)
-    plt.ylim(0,1.2)
+    plt.ylim(0,1.4)
     plt.xlim(0, 250)
     xticks = [xx for xx in range(0, 250, 10)]
     xlabels = ['%d' % xx if ii%10==0 else '' for ii, xx in enumerate(xticks)]
     plt.xticks(xticks, xlabels)
-    yticks = [xx for xx in np.arange(0.0, 1.2, 0.1)]
+    yticks = [xx for xx in np.arange(0.0, 1.4, 0.1)]
     ylabels = ['%.1f' % xx if ii%4 ==0 else '' for ii, xx in enumerate(yticks)]
     plt.yticks(yticks, ylabels)
     plt.legend(header_list, title_list, fontsize=10)
