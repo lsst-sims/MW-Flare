@@ -181,6 +181,7 @@ if __name__ == "__main__":
     for tt in star_counts_z_grid:
         out_name = os.path.join(args.out_dir, "mdwarf_count_%s_M%d.txt" % (args.suffix, tt))
         with open(out_name, 'w') as output_file:
+            output_file.write('# z(pc) number of stars\n')
             for iz in range(n_z_grid):
                 output_file.write('%e %e\n' % (iz*d_z, star_counts_z_grid[tt][iz]))
 
