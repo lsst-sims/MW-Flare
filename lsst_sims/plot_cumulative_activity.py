@@ -76,8 +76,9 @@ if __name__ == "__main__":
                         tau = tau_dict[8]
                     frac = aa*np.exp(-1.0*z_bin[-1]/tau) + bb
 
-                    n_active[-1] += frac*ct
-                    n_total[-1] += ct
+                    if spec_class>=4 and spec_class<=6:
+                        n_active[-1] += frac*ct
+                        n_total[-1] += ct
 
                     if spec_class in type_ct:
                         type_ct[spec_class] += frac*ct
