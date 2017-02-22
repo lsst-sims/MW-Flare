@@ -40,7 +40,7 @@ def fit_to_exp_decay(xx_data, yy_data, sigma_data, xx_test):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--outdir", type=str, default=None)
+    parser.add_argument("--outdir", type=str, default='type_fits')
 
     args = parser.parse_args()
     if args.outdir is None:

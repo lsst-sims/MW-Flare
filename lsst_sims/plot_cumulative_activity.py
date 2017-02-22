@@ -37,7 +37,7 @@ if __name__ == "__main__":
     tau_dict = {}
     for spec_type in range(9):
         spec_name = 'M%d' % spec_type
-        with open(os.path.join('output', '%s_fit.txt' % spec_name)) as input_file:
+        with open(os.path.join('type_fits', '%s_fit.txt' % spec_name)) as input_file:
             lines = input_file.readlines()
             params = lines[1].split()
             aa = float(params[0])
