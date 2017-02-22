@@ -27,7 +27,8 @@ if __name__ == "__main__":
                   '1250', '1400']
 
     z_bin = []
-    n_active = []
+    n_active_m4m6 = []
+    n_total_m4m6 = []
     n_total = []
     type_ct = {}
     type_total = {}
@@ -51,7 +52,8 @@ if __name__ == "__main__":
     for z_min in range(25, 201, z_step):
 
         z_bin.append(float(z_min)+0.5*float(z_step))
-        n_active.append(0.0)
+        n_active_m4m6.append(0.0)
+        n_total_m4m6.append(0.0)
         n_total.append(0.0)
 
         for table in table_list:
@@ -77,8 +79,9 @@ if __name__ == "__main__":
                     frac = aa*np.exp(-1.0*z_bin[-1]/tau) + bb
 
                     if spec_class>=4 and spec_class<=6:
-                        n_active[-1] += frac*ct
-                        n_total[-1] += ct
+                        n_active_m4m6[-1] += frac*ct
+                        n_total_m4m6[-1] += ct
+                    n_total[-1] += ct
 
                     if spec_class in type_ct:
                         type_ct[spec_class] += frac*ct
@@ -88,9 +91,10 @@ if __name__ == "__main__":
                         type_total[spec_class] = ct
 
     z_bin = np.array(z_bin)
-    n_active = np.array(n_active)
+    n_active_m4m6 = np.array(n_active_m4m6)
+    n_total_m4m6 = np.array(n_total_m4m6)
     n_total = np.array(n_total)
-    total_active = n_active.sum()
+    total_active_m4m6 = n_active_m4m6.sum()
     plt.figsize = (30,30)
 
     control_dtype = np.dtype([('z', float),  ('frac', float)])
@@ -105,7 +109,7 @@ if __name__ == "__main__":
     # mutliply by 0.9 because 0.9 of the active stars in
     # Hilton et al. Figure 12 occcur by the 225 pc mark,
     # where our data runs out
-    hh, = plt.plot(z_bin, 0.9*np.cumsum(n_active)/total_active, marker='o', color='b')
+    hh, = plt.plot(z_bin, 0.9*np.cumsum(n_active_m4m6)/total_active_m4m6, marker='o', color='b')
     header_list.append(hh)
     title_list.append('this model')
     plt.xlabel('distance from Galactic plane (pc)', fontsize=10)
