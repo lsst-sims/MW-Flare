@@ -28,7 +28,7 @@ Once each star has been assigned a spectral type, we will need to
 probabilistically assign each star an activity rate ("active"/"inactive").
 The script `fit_by_type.py` uses the data from Figure 5 of West et al. 2008
 (AJ 135, 785) to model the "active" fraction of each spectral type as a
-function of its distances from the Galactic plane with a decaying exponential
+function of distance from the Galactic plane with a decaying exponential
 of the form `A*exp[-z/tau] + B` where `z` is the distance in parsecs from the
 Galactic plane and `A`, `tau`, and `B` are parameters to be fit.  The resulting
 fits are saved to text files in the `type_fits/` directory of this repository.
