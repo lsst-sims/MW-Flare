@@ -38,109 +38,60 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np
 
+
 if __name__ == "__main__":
 
-    fit_dir = "type_fits"
-    ct_dir = "output"
     data_dir = "data"
     plot_dir = "plots"
-    part_list = ['0870', '1100', '1160', '1180',
-                 '1200', '1220', '1250', '1400']
 
-    spec_class_list = range(4,7)
+    dtype = np.dtype([('z', float), ('frac', float)])
 
-    data_file_name = os.path.join(data_dir, "flare_rate_Hilton_et_al_2010.txt")
+    active_data = np.genfromtxt(os.path.join(data_dir,
+                                             'activity_rate_Hilton_et_al_2010.txt'),
+                                dtype=dtype)
 
-    data_dtype = np.dtype([('z', float), ('frac', float)])
+    flare_data = np.genfromtxt(os.path.join(data_dir,
+                                            'flare_rate_Hilton_et_al_2010.txt'),
+                               dtype=dtype)
 
-    true_data = np.genfromtxt(data_file_name, dtype=data_dtype)
 
-    ct_dtype = np.dtype([('z', float), ('ct', float)])
+    tau_grid = np.arange(0.1,200.0,0.1)
 
-    z_grid = np.arange(0.0, 200.0, 10.0)
-    star_ct_dict = {}
-    for spec_class in spec_class_list:
-        star_ct_dict[spec_class] = np.zeros(len(z_grid))
-        for part in part_list:
-            file_name = os.path.join(ct_dir, 'mdwarf_count_%s_M%d.txt' %
-                                     (part, spec_class))
+    error_best_flare = None
+    error_best_active = None
+    for tau in tau_grid:
+        active_model = 1.0-np.exp(-1.0*active_data['z']/tau)
+        active_error = np.power(active_model-active_data['frac'],2).sum()
+        if error_best_active is None or active_error<error_best_active:
+            error_best_active = active_error
+            tau_active = tau
 
-            ct_data = np.genfromtxt(file_name, dtype=ct_dtype)
-            np.testing.assert_array_equal(z_grid, ct_data['z'][:20])
-            star_ct_dict[spec_class] += ct_data['ct'][:20]
+        flare_model = 1.0-np.exp(-1.0*flare_data['z']/tau)
+        flare_error = np.power(flare_model-flare_data['frac'],2).sum()
+        if error_best_flare is None or flare_error<error_best_flare:
+            error_best_flare = flare_error
+            tau_flare = tau
 
-    aa_dict = {}
-    bb_dict = {}
-    tau_dict = {}
 
-    for spec_class in spec_class_list:
-        file_name = os.path.join(fit_dir, 'M%d_fit.txt' % spec_class)
-        with open(file_name, 'r') as input_file:
-            lines = input_file.readlines()
-            vv = lines[1].split()
-            aa = float(vv[0])
-            tau = float(vv[1])
-            bb = float(vv[2])
-            aa_dict[spec_class] = aa
-            bb_dict[spec_class] = bb
-            tau_dict[spec_class] = tau
+    print 'tau_active: %.9g; %.2e' % (tau_active, error_best_active)
+    print 'tau_flare: %.9g; %.2e' % (tau_flare, error_best_flare)
+    print 'tau_flare/tau_active: %.9g' % (tau_flare/tau_active)
 
-    fudge_grid = np.arange(1.0, 10.0, 0.1)
-    error_best = None
-    for fudge in fudge_grid:
-        ct_grid = np.zeros(len(z_grid))
-        for spec_class in spec_class_list:
-            aa = aa_dict[spec_class]
-            tau = tau_dict[spec_class]
-            bb = bb_dict[spec_class]
-            frac_grid = bb + aa*np.exp(-1.0*z_grid/(tau*fudge))
-            scaled_ct = star_ct_dict[spec_class]*frac_grid
-            ct_grid += scaled_ct
-
-        total = ct_grid.sum()
-        cum_ct = np.cumsum(ct_grid)/total
-        test_val = np.interp(true_data['z'], z_grid, cum_ct)
-        error = np.power(test_val-true_data['frac'],2).sum()
-        if error_best is None or error<error_best:
-            error_best = error
-            fudge_best = fudge
-
-    print 'fudge factor ',fudge_best
-
-    fudged_grid = np.zeros(len(z_grid))
-    unfudged_grid = np.zeros(len(z_grid))
-    for spec_class in spec_class_list:
-        aa = aa_dict[spec_class]
-        tau = tau_dict[spec_class]
-        bb = bb_dict[spec_class]
-        frac_grid = bb + aa*np.exp(-1.0*z_grid/(tau*fudge_best))
-        scaled_ct = star_ct_dict[spec_class]*frac_grid
-        fudged_grid += scaled_ct
-        frac_grid = bb + aa*np.exp(-1.0*z_grid/tau)
-        scaled_ct = star_ct_dict[spec_class]*frac_grid
-        unfudged_grid += scaled_ct
 
     plt.figsize = (30,30)
-    hh, = plt.plot(true_data['z'], true_data['frac'], color='k')
+    hh, = plt.plot(active_data['z'], active_data['frac'], color='k')
     header_list = [hh]
-    label_list = ['Hilton et al 2010 fig 12']
+    label_list = ['active stars']
+    plt.plot(active_data['z'], 1.0-np.exp(-1.0*active_data['z']/tau_active),
+             color='k', linestyle='--')
 
-    total = fudged_grid.sum()
-    cum_ct = np.cumsum(fudged_grid)/total
-
-    hh, = plt.plot(z_grid, cum_ct, color='r')
+    hh, = plt.plot(flare_data['z'], flare_data['frac'], color='r')
     header_list.append(hh)
-    label_list.append('This model: fudge = %.3f' % fudge_best)
+    label_list.append('flaring stars')
+    plt.plot(flare_data['z'], 1.0-np.exp(-1.0*flare_data['z']/tau_flare),
+             color='r', linestyle='--')
 
-    total = unfudged_grid.sum()
-    cum_ct = np.cumsum(unfudged_grid)/total
-
-    hh, = plt.plot(z_grid, cum_ct, color='b')
-    header_list.append(hh)
-    label_list.append('This model: fudge = 1.0')
-
+    plt.xlabel('z(pc)')
+    plt.ylabel('cumulative fraction')
     plt.legend(header_list, label_list, loc=0)
-    plt.xlabel('z (pc)')
-    plt.ylabel('cumulative fraction flare stars')
-
-    plt.savefig(os.path.join(plot_dir, 'flare_star_distribution.png'))
+    plt.savefig(os.path.join('plots', 'fit_fudge_factor.png'))
