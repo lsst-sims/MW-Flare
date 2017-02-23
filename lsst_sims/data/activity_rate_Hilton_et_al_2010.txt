@@ -1,0 +1,11 @@
+# this is a by-eye reconstruction of the data underlying the dashed
+# gray curve ("active stars") in Figure 12 of Hilton et al 2010
+# (AJ 140, 1402).  This is only for M4-6 stars, as noted in the paper.
+# z, cumulative fraction
+50 0.05
+80 0.25
+100 0.43
+130 0.64
+160 0.78
+200 0.875
+225 0.9

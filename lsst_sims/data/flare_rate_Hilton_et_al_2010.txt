@@ -1,0 +1,24 @@
+# this is a by-eye reconstruction of the data underlying the solid
+# black curve ("flare stars") in Figure 12 of Hilton et al 2010
+# (AJ 140, 1402).  This is only for M4-6 stars, as noted in the paper.
+# z, cumulative fraction
+25 0.05
+40 0.1
+45 0.15
+50 0.2
+53 0.25
+55 0.3
+57 0.35
+60 0.4
+61 0.45
+70 0.5
+72 0.55
+78 0.6
+83 0.65
+86 0.7
+93 0.75
+95 0.8
+99 0.85
+105 0.9
+135 0.95
+158 1.0

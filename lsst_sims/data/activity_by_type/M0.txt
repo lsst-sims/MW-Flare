@@ -1,0 +1,6 @@
+# This is a by-eye recreation of the data from West et al 2008
+# (AJ 135, 785) Figure 5
+# z (pc) fraction min max
+75 0.1 0.075 0.13
+225 0.025 0.015 0.035
+375 0.015 0.0145 0.0155
