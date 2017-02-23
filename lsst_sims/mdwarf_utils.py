@@ -68,7 +68,7 @@ def prob_of_type(r_i, i_z):
     Returns
     -------
     A numpy array containing the probability density value of the star's color
-    in the 2-D Gaussian PDF associated with each spectral subtype (M0-M7).
+    in the 2-D Gaussian PDF associated with each spectral subtype (M0-M9).
     If more than one star was passed in, then each row of the numpy array
     will corresponds to a different stellar type, i.e.
 
