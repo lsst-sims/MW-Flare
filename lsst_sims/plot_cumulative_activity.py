@@ -16,7 +16,7 @@ import os
 
 if __name__ == "__main__":
 
-    ct_dir = "output"
+    ct_dir = "query_results"
     gp_dir = "z_bin_fits"
     fig_dir = "plots"
 
