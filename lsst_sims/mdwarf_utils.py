@@ -56,8 +56,8 @@ def xyz_from_lon_lat_px(lon, lat, px):
 def prob_of_type(r_i, i_z):
     """
     Find the relative probabilities that a star is of spectral types
-    M0-M7 as detailed in the caption for Table 1 of Kowalski et al 2009
-    (ApJ 138, 633)
+    M0-M9 as detailed in the caption for Table 2 of West et al 2011
+    (AJ 141, 97)
 
     Parameters
     ----------
