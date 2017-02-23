@@ -28,3 +28,119 @@ spectral type's scale height (tau) to recreate the "flare stars" curve in
 Figure 12 of Hilton et al. 2010.
 
 """
+
+from __future__ import with_statement
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+import os
+import numpy as np
+
+if __name__ == "__main__":
+
+    fit_dir = "type_fits"
+    ct_dir = "output"
+    data_dir = "data"
+    plot_dir = "plots"
+    part_list = ['0870', '1100', '1160', '1180',
+                 '1200', '1220', '1250', '1400']
+
+    spec_class_list = range(4,7)
+
+    data_file_name = os.path.join(data_dir, "flare_rate_Hilton_et_al_2010.txt")
+
+    data_dtype = np.dtype([('z', float), ('frac', float)])
+
+    true_data = np.genfromtxt(data_file_name, dtype=data_dtype)
+
+    ct_dtype = np.dtype([('z', float), ('ct', float)])
+
+    z_grid = np.arange(0.0, 200.0, 10.0)
+    star_ct_dict = {}
+    for spec_class in spec_class_list:
+        star_ct_dict[spec_class] = np.zeros(len(z_grid))
+        for part in part_list:
+            file_name = os.path.join(ct_dir, 'mdwarf_count_%s_M%d.txt' %
+                                     (part, spec_class))
+
+            ct_data = np.genfromtxt(file_name, dtype=ct_dtype)
+            np.testing.assert_array_equal(z_grid, ct_data['z'][:20])
+            star_ct_dict[spec_class] += ct_data['ct'][:20]
+
+    aa_dict = {}
+    bb_dict = {}
+    tau_dict = {}
+
+    for spec_class in spec_class_list:
+        file_name = os.path.join(fit_dir, 'M%d_fit.txt' % spec_class)
+        with open(file_name, 'r') as input_file:
+            lines = input_file.readlines()
+            vv = lines[1].split()
+            aa = float(vv[0])
+            tau = float(vv[1])
+            bb = float(vv[2])
+            aa_dict[spec_class] = aa
+            bb_dict[spec_class] = bb
+            tau_dict[spec_class] = tau
+
+    fudge_grid = np.arange(1.0, 10.0, 0.1)
+    error_best = None
+    for fudge in fudge_grid:
+        ct_grid = np.zeros(len(z_grid))
+        for spec_class in spec_class_list:
+            aa = aa_dict[spec_class]
+            tau = tau_dict[spec_class]
+            bb = bb_dict[spec_class]
+            frac_grid = bb + aa*np.exp(-1.0*z_grid/(tau*fudge))
+            scaled_ct = star_ct_dict[spec_class]*frac_grid
+            ct_grid += scaled_ct
+
+        total = ct_grid.sum()
+        cum_ct = np.cumsum(ct_grid)/total
+        test_val = np.interp(true_data['z'], z_grid, cum_ct)
+        error = np.power(test_val-true_data['frac'],2).sum()
+        if error_best is None or error<error_best:
+            error_best = error
+            fudge_best = fudge
+
+    print 'fudge factor ',fudge_best
+
+    fudged_grid = np.zeros(len(z_grid))
+    unfudged_grid = np.zeros(len(z_grid))
+    for spec_class in spec_class_list:
+        aa = aa_dict[spec_class]
+        tau = tau_dict[spec_class]
+        bb = bb_dict[spec_class]
+        frac_grid = bb + aa*np.exp(-1.0*z_grid/(tau*fudge_best))
+        scaled_ct = star_ct_dict[spec_class]*frac_grid
+        fudged_grid += scaled_ct
+        frac_grid = bb + aa*np.exp(-1.0*z_grid/tau)
+        scaled_ct = star_ct_dict[spec_class]*frac_grid
+        unfudged_grid += scaled_ct
+
+    plt.figsize = (30,30)
+    hh, = plt.plot(true_data['z'], true_data['frac'], color='k')
+    header_list = [hh]
+    label_list = ['Hilton et al 2010 fig 12']
+
+    total = fudged_grid.sum()
+    cum_ct = np.cumsum(fudged_grid)/total
+
+    hh, = plt.plot(z_grid, cum_ct, color='r')
+    header_list.append(hh)
+    label_list.append('This model: fudge = %.3f' % fudge_best)
+
+    total = unfudged_grid.sum()
+    cum_ct = np.cumsum(unfudged_grid)/total
+
+    hh, = plt.plot(z_grid, cum_ct, color='b')
+    header_list.append(hh)
+    label_list.append('This model: fudge = 1.0')
+
+    plt.legend(header_list, label_list, loc=0)
+    plt.xlabel('z (pc)')
+    plt.ylabel('cumulative fraction flare stars')
+
+    plt.savefig(os.path.join(plot_dir, 'flare_star_distribution.png'))
