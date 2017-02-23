@@ -13,6 +13,6 @@ These are the classes into which Eric Hilton's PhD dissertation
 (http://search.proquest.com/docview/1069196057) divides
 M dwarfs (it is also the classification used by Hilton et al. 2011, 16th
 Cambridge Workshop on Cool Stars, Stellar Systems and the Sun, ASP
-Conference Sereis, Vol. 448).  Once we have divided the stars into these
+Conference Series, Vol. 448).  Once we have divided the stars into these
 classes, we can use the parameters in Table 4.3 of Eric Hilton's PhD
 dissertation to assign flaring light curves to each star.
