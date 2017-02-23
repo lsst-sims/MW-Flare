@@ -16,3 +16,10 @@ Cambridge Workshop on Cool Stars, Stellar Systems and the Sun, ASP
 Conference Series, Vol. 448).  Once we have divided the stars into these
 classes, we can use the parameters in Table 4.3 of Eric Hilton's PhD
 dissertation to assign flaring light curves to each star.
+
+#Classifying M-Dwarf stars
+
+To find the spectral type of an M-Dwarf star, use the `prob_of_type`
+method in `mdwarf_utils.py`.  This method uses the color data from
+Table 2 of West et al. 2011 (AJ 141, 97) to calculate the probability
+that a given star belongs to one of the classes M0-M9.
