@@ -15,7 +15,7 @@ if __name__ == "__main__":
                         default=None)
 
     parser.add_argument('--out_dir', type=str, help='output directory',
-                        default='output')
+                        default='query_results')
 
     parser.add_argument('--max_type', type=int, help='maximum M sub-type',
                         default=8)
