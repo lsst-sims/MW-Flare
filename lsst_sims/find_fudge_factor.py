@@ -83,6 +83,9 @@ if __name__ == "__main__":
     print 'offset_active: %.9g' % offset_active
     print 'offset_flare: %.9g' % offset_flare
 
+    with open(os.path.join('type_fits','fudge_factor.txt'), 'w') as out_file:
+        out_file.write('# factor to multiply tau by to get "flaring active" stars\n')
+        out_file.write('%.9g\n' % (tau_flare/tau_active))
 
     plt.figsize = (30,30)
     hh, = plt.plot(active_data['z'], active_data['frac'], color='k')
