@@ -1,7 +1,7 @@
 import numpy as np
 from lsst.sims.utils import radiansFromArcsec
 
-__all__ = ["xyz_from_lon_lat_px"]
+__all__ = ["xyz_from_lon_lat_px", "prob_of_type"]
 
 def xyz_from_lon_lat_px(lon, lat, px):
     """
