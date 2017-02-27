@@ -2,7 +2,10 @@
 # Eric Hilton's PhD dissertation.
 # http://search.proquest.com/docview/1069196057
 #
-# class alpha beta log(emin) log(emax)
+# These parameters indicate the rate of flares as a function of
+# energy in the Johnson U band in units of flares per hour
+#
+# class alpha betas log(emin) log(emax)
 # (energies are in ergs in the Johnson U band)
 # (mid_active row excludes "famous flare stars")
 early_inactive 30.75 -1.06 29.90 31.04
