@@ -9,7 +9,7 @@
 # (energies are in ergs in the Johnson U band)
 # (mid_active row excludes "famous flare stars")
 early_inactive 30.75 -1.06 29.90 31.04
-early_active 85.70 -2.76 90.5 2.9 31.31 31.48
+early_active 85.70 -2.76 90.5 31.31 31.48
 mid_inactive  5.88 -0.25 29.57 32.63
 mid_active 19.57 -0.67 29.41 33.58
 late_active 20.49 -0.73 27.94 30.60
