@@ -1,7 +1,9 @@
+from __future__ import with_statement
 import numpy as np
+import os
 from lsst.sims.utils import radiansFromArcsec
 
-__all__ = ["xyz_from_lon_lat_px", "prob_of_type"]
+__all__ = ["xyz_from_lon_lat_px", "prob_of_type", "draw_energies"]
 
 def xyz_from_lon_lat_px(lon, lat, px):
     """
@@ -118,3 +120,79 @@ def prob_of_type(r_i, i_z):
         output.append(exp_term/(2.0*np.pi*prob_of_type.sqrt_det[ix]))
 
     return np.array(output)
+
+
+def draw_energies(stellar_class, duration, rng):
+    """
+    Parameters
+    ----------
+    stellar_class is a string string denoting the class of flare star.  Must be
+    selected from
+        'early_inactive'
+        'early_active'
+        'mid_inactive'
+        'mid_active'
+        'late_active'
+
+    duration is a float indicating the length of time in days that you want to
+    simulate.
+
+    rng is an instantiation of numpy.random.RandomState that will be used as
+    a random number generator
+
+    Returns
+    -------
+    A numpy array of times at which flares occurred (in days)
+    A numpy array of the energies of the flares
+    """
+
+    duration_hours = 24.0*duration
+
+    if not hasattr(draw_energies, '_params_dict'):
+        draw_energies._params_dict = {}
+
+        param_file = os.path.join('lsst_sims', 'data', 'hilton_phd_table_4.3.txt')
+        if not os.path.exists(param_file):
+            param_file = os.path.join('data', 'hilton_phd_table_4.3.txt')
+            if not os.path.exists(param_file):
+                raise RuntimeError("Cannot find hilton_phd_table_4.3.txt.\n"
+                                   "Make sure you are calling draw_energies from "
+                                   "MW-Flare or MW-Flare/lsst_sims")
+
+        with open(param_file, 'r') as input_file:
+            input_lines = input_file.readlines()
+            for line in input_lines:
+                if line[0] != '#':
+                    vv = line.split()
+                    _class = vv[0]
+                    draw_energies._params_dict[_class] = {}
+                    draw_energies._params_dict[_class]['alpha'] =  float(vv[1])
+                    draw_energies._params_dict[_class]['beta'] = float(vv[2])
+                    draw_energies._params_dict[_class]['log(emin)'] = float(vv[3])
+                    draw_energies._params_dict[_class]['log(emax)'] = float(vv[4])
+
+    alpha = draw_energies._params_dict[stellar_class]['alpha']
+    beta = draw_energies._params_dict[stellar_class]['beta']
+    logemin = draw_energies._params_dict[stellar_class]['log(emin)']
+
+    emin = np.power(10.0, logemin)
+
+    # No obvious justification for this value;
+    # it just seems reasonable
+    e_abs_max = np.power(10.0,34)
+
+    total_per_hour = np.power(10.0, alpha+beta*logemin)
+    total_n_flares = int(np.round(total_per_hour*duration_hours))
+
+    uniform_deviate = rng.random_sample(total_n_flares)
+
+    energy_list = emin*np.power(1.0-uniform_deviate, 1.0/beta)
+
+    # set any flares that were randomly assigned energy > e_abs_max
+    # to == e_abs_max to avoid randomly getting flares with absurd
+    # energies
+    energy_list = np.where(energy_list<e_abs_max, energy_list, e_abs_max)
+
+    time_list = rng.random_sample(total_n_flares)*duration_hours
+
+    return time_list/24.0, energy_list
