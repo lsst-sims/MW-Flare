@@ -3,7 +3,8 @@ import numpy as np
 import os
 from lsst.sims.utils import radiansFromArcsec
 
-__all__ = ["xyz_from_lon_lat_px", "prob_of_type", "draw_energies"]
+__all__ = ["xyz_from_lon_lat_px", "prob_of_type", "draw_energies",
+           "duration_from_energy"]
 
 def xyz_from_lon_lat_px(lon, lat, px):
     """
@@ -196,3 +197,63 @@ def draw_energies(stellar_class, duration, rng):
     time_list = rng.random_sample(total_n_flares)*duration_hours
 
     return time_list/24.0, energy_list
+
+
+def duration_from_energy(energy_u, rng):
+    """
+    Parameters
+    ----------
+    energy_u is the energy of the flare in the Johnson U band
+    (in ergs)
+
+    rng is an instantiation of numpy.random.RandomState from which
+    we will draw our random numbers
+
+    Returns
+    -------
+    The duration of the flare in minutes, drawn from Figure 10 of
+    Hawley et al. 2014 (ApJ 797, 121)
+    """
+
+    if not hasattr(duration_from_energy, '_models'):
+        duration_from_energy._models = {}
+
+        file_name = os.path.join('lsst_sims', 'data',
+                                 'duration_Hawley_et_al_2014.txt')
+        if not os.path.exists(file_name):
+            file_name = os.path.join('data', 'duration_Hawley_et_al_2014.txt')
+            if not os.path.exists(file_name):
+                raise RuntimeError("Could not find duration_Hawley_et_al_2014.txt\n"
+                                   "Be sure you are running duration_from_energy "
+                                   "from either MW-flare or MW-flare/lsst_sims/")
+
+        dtype = np.dtype([('ekp', float), ('mean', float), ('min', float),
+                          ('max', float)])
+
+        model_data = np.genfromtxt(file_name, dtype=dtype)
+
+        eu = model_data['ekp'] + np.log10(0.65)  # transform to Johnson U band
+                                                 # See Hawley et al 2014, last
+                                                 # paragraph before Section 3
+
+        xsq = np.power(eu, 2).sum()
+        xxn = np.power(eu.sum(), 2)/float(len(eu))
+        m_denom = xsq - xxn
+
+        for tag in ('mean', 'min', 'max'):
+            yy = np.log10(model_data[tag])
+            duration_from_energy._models[tag] = {}
+            yn = yy.sum()/float(len(yy))
+            m_num = (eu*(yy-yn)).sum()
+            mm = m_num/m_denom
+            duration_from_energy._models[tag]['m'] = mm
+            duration_from_energy._models[tag]['b'] = (yy - mm*eu).sum()/float(len(yy))
+
+    log_e = np.log10(energy_u)
+    min_dur = duration_from_energy._models['min']['m']*log_e + duration_from_energy._models['min']['b']
+    max_dur = duration_from_energy._models['max']['m']*log_e + duration_from_energy._models['max']['b']
+    mean_dur = duration_from_energy._models['mean']['m']*log_e + duration_from_energy._models['mean']['b']
+    normal_deviate = rng.normal(loc=0.0, scale=1.0, size=len(energy_u))
+    sigma = 0.25*(max_dur-min_dur)
+    duration = normal_deviate*sigma + mean_dur
+    return np.power(10.0, duration)
