@@ -67,7 +67,8 @@ for ic, color in zip(range(len(class_list)), color_list):
     hh, = plt.plot(log_ee_control, alpha+beta*log_ee_control, color=color)
     header_list.append(hh)
     label_list.append(star_class.replace('_',' '))
-    plt.scatter(log_ee_control, np.log10(cum_ct), color=color, marker='+')
+    plt.scatter(log_ee_control, np.log10(cum_ct), color=color, marker='+',
+                s=55)
 
     overlarge = np.where(ee>np.power(10.0, 33.9))
     print 'number of flares set to e_abs_max: ',len(overlarge[0]), \
