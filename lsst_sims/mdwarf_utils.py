@@ -144,7 +144,7 @@ def draw_energies(stellar_class, duration, rng):
     Returns
     -------
     A numpy array of times at which flares occurred (in days)
-    A numpy array of the energies of the flares
+    A numpy array of the energies of the flares (in ergs in the Johnson U band)
     """
 
     duration_hours = 24.0*duration
