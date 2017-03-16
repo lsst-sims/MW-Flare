@@ -37,7 +37,7 @@ rng = np.random.RandomState(118)
 
 duration = 3650.0
 
-color_list = ['k', 'r', 'b', 'g']
+color_list = ['k', 'r', 'b', 'g', 'c']
 
 plt.figsize = (30, 30)
 header_list = []
@@ -81,6 +81,6 @@ for ic, color in zip(range(len(class_list)), color_list):
 plt.legend(header_list, label_list, loc=0)
 plt.xlabel('Log(Johnson U Band energy in ergs')
 plt.ylabel('Log(cumulative number of flares)')
-plt.text(29.1, -2.7, 'Markers are simulation results.\n'
+plt.text(27.1, -2.7, 'Markers are simulation results.\n'
          'Lines are the distributions being simulated.')
 plt.savefig(os.path.join('plots', 'energy_dist_validation.png'))
