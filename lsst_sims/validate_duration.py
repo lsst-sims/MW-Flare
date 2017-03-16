@@ -24,20 +24,17 @@ plt.scatter(log_ekp, duration, marker='o', color='k')
 log_e = np.sort(log_e)
 log_ekp = np.sort(log_ekp)
 
-mm = duration_from_energy._models['min']['m']
-bb = duration_from_energy._models['min']['b']
+d_min = np.interp(log_ekp,
+                  duration_from_energy._model_data['ekp'],
+                  duration_from_energy._model_data['min'])
 
-d_min = np.power(10.0, mm*log_e + bb)
+d_max = np.interp(log_ekp,
+                  duration_from_energy._model_data['ekp'],
+                  duration_from_energy._model_data['max'])
 
-mm = duration_from_energy._models['max']['m']
-bb = duration_from_energy._models['max']['b']
-
-d_max = np.power(10.0, mm*log_e + bb)
-
-mm = duration_from_energy._models['mean']['m']
-bb = duration_from_energy._models['mean']['b']
-
-d_mean = np.power(10.0, mm*log_e + bb)
+d_mean = np.interp(log_ekp,
+                   duration_from_energy._model_data['ekp'],
+                   duration_from_energy._model_data['mean'])
 
 plt.plot(log_ekp, d_min)
 plt.plot(log_ekp, d_mean, linestyle='--')

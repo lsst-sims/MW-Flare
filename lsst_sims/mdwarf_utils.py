@@ -215,8 +215,7 @@ def duration_from_energy(energy_u, rng):
     Hawley et al. 2014 (ApJ 797, 121)
     """
 
-    if not hasattr(duration_from_energy, '_models'):
-        duration_from_energy._models = {}
+    if not hasattr(duration_from_energy, '_model_data'):
 
         file_name = os.path.join('lsst_sims', 'data',
                                  'duration_Hawley_et_al_2014.txt')
@@ -230,30 +229,29 @@ def duration_from_energy(energy_u, rng):
         dtype = np.dtype([('ekp', float), ('mean', float), ('min', float),
                           ('max', float)])
 
-        model_data = np.genfromtxt(file_name, dtype=dtype)
+        duration_from_energy._model_data = np.genfromtxt(file_name, dtype=dtype)
 
-        eu = model_data['ekp'] + np.log10(0.65)  # transform to Johnson U band
-                                                 # See Hawley et al 2014, last
-                                                 # paragraph before Section 3
-
-        xsq = np.power(eu, 2).sum()
-        xxn = np.power(eu.sum(), 2)/float(len(eu))
-        m_denom = xsq - xxn
-
-        for tag in ('mean', 'min', 'max'):
-            yy = np.log10(model_data[tag])
-            duration_from_energy._models[tag] = {}
-            yn = yy.sum()/float(len(yy))
-            m_num = (eu*(yy-yn)).sum()
-            mm = m_num/m_denom
-            duration_from_energy._models[tag]['m'] = mm
-            duration_from_energy._models[tag]['b'] = (yy - mm*eu).sum()/float(len(yy))
+        # transform to Johnson U band
+        # See Hawley et al 2014, last
+        # paragraph before Section 3
+        duration_from_energy._eu = (duration_from_energy._model_data['ekp'] +
+                                    np.log10(0.65))
 
     log_e = np.log10(energy_u)
-    min_dur = duration_from_energy._models['min']['m']*log_e + duration_from_energy._models['min']['b']
-    max_dur = duration_from_energy._models['max']['m']*log_e + duration_from_energy._models['max']['b']
-    mean_dur = duration_from_energy._models['mean']['m']*log_e + duration_from_energy._models['mean']['b']
+
+    min_dur = np.interp(log_e,
+                        duration_from_energy._eu,
+                        duration_from_energy._model_data['min'])
+
+    max_dur = np.interp(log_e,
+                        duration_from_energy._eu,
+                        duration_from_energy._model_data['max'])
+
+    mean_dur = np.interp(log_e,
+                         duration_from_energy._eu,
+                         duration_from_energy._model_data['mean'])
+
     normal_deviate = rng.normal(loc=0.0, scale=1.0, size=len(energy_u))
     sigma = 0.25*(max_dur-min_dur)
     duration = normal_deviate*sigma + mean_dur
-    return np.power(10.0, duration)
+    return duration
