@@ -79,4 +79,8 @@ for ic, color in zip(range(len(class_list)), color_list):
           ' out of ',len(ee)
 
 plt.legend(header_list, label_list, loc=0)
+plt.xlabel('Log(Johnson U Band energy in ergs')
+plt.ylabel('Log(cumulative number of flares)')
+plt.text(29.1, -2.7, 'Markers are simulation results.\n'
+         'Lines are the distributions being simulated.')
 plt.savefig(os.path.join('plots', 'energy_dist_validation.png'))
