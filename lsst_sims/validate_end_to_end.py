@@ -89,7 +89,9 @@ control_log_ekp = log_ekp_quiescent + np.log10(control_data['e_dur'])
 control_amp = control_data['amp']
 
 rng = np.random.RandomState(813)
-t_flare, e_flare = draw_energies('mid_active', 720.0, rng)
+simulation_length = control_data['stop'].max()-control_data['start'].min()
+
+t_flare, e_flare = draw_energies('mid_active', simulation_length, rng)
 
 duration = duration_from_energy(e_flare, rng)
 
