@@ -255,3 +255,82 @@ def duration_from_energy(energy_u, rng):
     sigma = 0.25*(max_dur-min_dur)
     duration = normal_deviate*sigma + mean_dur
     return duration
+
+
+def _f_rise_of_t(t):
+    """
+    Return the rising flux of a flare as a funciton of time.
+    See equation (1) of Davenport et al 2014 (ApJ 797, 122)
+
+    Parameters
+    ----------
+    t is the time (in units of the fwhm time)
+
+    Returns
+    -------
+    Flux (in relative units) at those times
+    """
+
+    return 1.0 + 1.941*t - 0.175*t*t - 2.246*t*t*t - 1.125*t*t*t*t
+
+def _f_decay_of_t(t):
+    """
+    Return the decaying flux of a flare as a funciton of time.
+    See equation (4) of Davenport et al 2014 (ApJ 797, 122)
+
+    Parameters
+    ----------
+    t is the time (in units of the fwhm time)
+
+    Returns
+    -------
+    Flux (in relative units) at those times
+    """
+
+    return 0.689*np.exp(-1.6*t) + 0.0303*np.exp(-0.2783*t)
+
+def amplitude_from_duration_energy(duration, energy_u):
+    """
+    Based on the analytical flare model of Davenport et al 2014
+    (ApJ 797, 122)
+
+    Parameters
+    ----------
+    duration of the flare in minutes (we will assert that the fwhm time
+    of the flare is just duration/8.0 as per Davenport et al 2014 Figure 5
+
+    energy is the energy of the flare in ergs in the Johnson U band
+
+    Returns
+    -------
+    The amplitude (in ergs; *not* the relative amplitude) of the flare.
+    """
+
+    if not hasattr(amplitude_from_duration_energy, '_t_rise'):
+        t_rise = np.arange(-1.0, 0.0, 0.01)
+        t_decay = np.arange(0.0, 7.0, 0.01)
+        f_rise = _f_rise_of_t(t_rise)
+        f_decay = _f_decay_of_t(t_decay)
+        amplitude_from_duration_energy._t_rise = t_rise
+        amplitude_from_duration_energy._t_decay = t_decay
+        amplitude_from_duration_energy._f_rise = f_rise
+        amplitude_from_duration_energy._f_decay = f_decay
+
+    t_fwhm_array = duration/8.0
+    t_rise = np.outer(t_fwhm_array, amplitude_from_duration_energy._t_rise)
+    t_decay = np.outer(t_fwhm_array, amplitude_from_duration_energy._t_decay)
+    f_rise = amplitude_from_duration_energy._f_rise
+    f_decay = amplitude_from_duration_energy._f_decay
+
+    assert t_rise.shape[1] == len(amplitude_from_duration_energy._t_rise)
+    assert t_rise.shape[0] == len(duration)
+
+    rising_flux = np.dot(t_rise, f_rise)
+    decaying_flux = np.dot(t_decay, f_decay)
+
+    amplitude = energy_u/(rising_flux + decaying_flux)
+
+    assert len(amplitude) == len(duration)
+    assert len(amplitude) == len(energy_u)
+
+    return amplitude
