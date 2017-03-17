@@ -1,3 +1,8 @@
+"""
+This script will try to recreate the energy-versus-duration plot from
+Hawley et al 2014 (ApJ 797, 12) Figure 10
+"""
+
 import matplotlib
 matplotlib.use('Agg')
 
@@ -7,7 +12,7 @@ from mdwarf_utils import duration_from_energy
 
 import numpy as np
 
-rng = np.random.RandomState()
+rng = np.random.RandomState(44)
 
 n_flares = 10000
 log_e = rng.random_sample(n_flares)*4.0 + 29.0
