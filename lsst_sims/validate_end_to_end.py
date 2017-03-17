@@ -13,7 +13,11 @@ import numpy as np
 from mdwarf_utils import (draw_energies, duration_from_energy,
                           amplitude_from_duration_energy)
 
-def make_density_data(xx_in, yy_in, dd):
+def make_density_plot(xx_in, yy_in, dd):
+    cmin = 0
+    cmax = 150
+    dc = 25
+
     data_x = np.round(xx_in/dd).astype(int)
     data_y = np.round(yy_in/dd).astype(int)
 
@@ -53,20 +57,24 @@ def make_density_data(xx_in, yy_in, dd):
     xx_arr = np.array(xx_arr)
     yy_arr = np.array(yy_arr)
 
-    sorted_dex = np.argsort(ct_arr)
+    xx_grid, yy_grid = np.mgrid[slice(xx_arr.min()*dd, xx_arr.max()*dd+dd, dd),
+                                slice(yy_arr.min()*dd, yy_arr.max()*dd+dd, dd)]
 
-    xx_arr = xx_arr[sorted_dex]*dd
-    yy_arr = yy_arr[sorted_dex]*dd
-    ct_arr = ct_arr[sorted_dex]
-    #ct_arr = np.cumsum(ct_arr)/float(ct_arr.sum())
+    cc_grid = np.ones(xx_grid.shape)*(-99.0)
 
-    return xx_arr, yy_arr, ct_arr
+    for ix, iy, cc in zip(xx_arr, yy_arr, ct_arr):
+        cc_grid[ix-xx_arr.min()][iy-yy_arr.min()] = cc
 
+    cc_masked = np.ma.masked_values(cc_grid, -99.0)
+    plt.pcolormesh(xx_grid, yy_grid, cc_masked,
+                   cmap=plt.cm.gist_ncar,
+                   edgecolor='')
 
-cmin = 0
-cmax = 150
-dc = 25
+    cb = plt.colorbar()
+    plt.clim(cmin,cmax)
+    cb.set_ticks(np.arange(cmin,cmax+10,dc))
 
+    return None
 
 dtype = np.dtype([('start_dex', float), ('stop_dex', float),
                   ('start', float), ('stop', float), ('peak', float),
@@ -110,14 +118,8 @@ dx = 0.05
 
 plt.subplot(3,2,1)
 
-xx, yy, cc = make_density_data(log_ekp_flare, np.log10(amp_rel), dx)
+make_density_plot(log_ekp_flare, np.log10(amp_rel), dx)
 
-plt.scatter(xx, yy, c=cc, edgecolor='',
-            cmap=plt.cm.gist_ncar,
-            s=5)
-cb = plt.colorbar()
-plt.clim(cmin,cmax)
-cb.set_ticks(np.arange(cmin,cmax+10,dc))
 plt.title('simulation', fontsize=10)
 plt.xlabel('Log(E_kp) in ergs',fontsize=10)
 plt.ylabel('Log(relative amplitude)', fontsize=10)
@@ -128,14 +130,8 @@ plt.xticks(range(29,35))
 
 
 plt.subplot(3,2,2)
-xx, yy, cc = make_density_data(control_log_ekp, np.log10(control_amp), dx)
+make_density_plot(control_log_ekp, np.log10(control_amp), dx)
 
-plt.scatter(xx, yy, c=cc, edgecolor='',
-            cmap=plt.cm.gist_ncar,
-            s=5)
-cb = plt.colorbar()
-plt.clim(cmin,cmax)
-cb.set_ticks(np.arange(cmin,cmax+10,dc))
 plt.title('data', fontsize=10)
 plt.xlabel('Log(E_kp) in ergs',fontsize=10)
 plt.ylabel('Log(relative amplitude)', fontsize=10)
@@ -146,14 +142,8 @@ plt.xticks(range(29,35))
 
 
 plt.subplot(3,2,3)
-xx, yy, cc = make_density_data(log_ekp_flare, np.log10(duration), dx)
+make_density_plot(log_ekp_flare, np.log10(duration), dx)
 
-plt.scatter(xx, yy, c=cc, edgecolor='',
-            cmap=plt.cm.gist_ncar,
-            s=5)
-cb = plt.colorbar()
-plt.clim(cmin,cmax)
-cb.set_ticks(np.arange(cmin,cmax+10,dc))
 plt.title('simulation', fontsize=10)
 plt.xlabel('Log(E_kp) in ergs',fontsize=10)
 plt.ylabel('Log(duration) (minutes)', fontsize=10)
@@ -163,15 +153,8 @@ plt.yticks(range(-1,3))
 plt.xticks(range(29,35))
 
 plt.subplot(3,2,4)
+make_density_plot(control_log_ekp, np.log10(control_duration), dx)
 
-xx, yy, cc = make_density_data(control_log_ekp, np.log10(control_duration), dx)
-
-plt.scatter(xx, yy, c=cc, edgecolor='',
-            cmap=plt.cm.gist_ncar,
-            s=5)
-cb = plt.colorbar()
-plt.clim(cmin,cmax)
-cb.set_ticks(np.arange(cmin,cmax+10,dc))
 plt.title('data', fontsize=10)
 plt.xlabel('Log(E_kp) in ergs', fontsize=10)
 plt.ylabel('Log(duration) (minutes)', fontsize=10)
@@ -181,14 +164,8 @@ plt.yticks(range(-1,3))
 plt.xticks(range(29,35))
 
 plt.subplot(3,2,5)
-xx, yy, cc = make_density_data(np.log10(duration), np.log10(amp_rel), dx)
+make_density_plot(np.log10(duration), np.log10(amp_rel), dx)
 
-plt.scatter(xx, yy, c=cc, edgecolor='',
-            cmap=plt.cm.gist_ncar,
-            s=10)
-cb = plt.colorbar()
-plt.clim(cmin,cmax)
-cb.set_ticks(np.arange(cmin,cmax+10,dc))
 plt.title('simulation',fontsize=10)
 plt.xlabel('Log(duration) (minutes)', fontsize=10)
 plt.ylabel('Log(relative amplitude)', fontsize=10)
@@ -199,15 +176,8 @@ plt.xticks(range(0,3))
 
 
 plt.subplot(3,2,6)
-xx, yy, cc = make_density_data(np.log10(control_duration), np.log10(control_amp),
-                               dx)
+make_density_plot(np.log10(control_duration), np.log10(control_amp),dx)
 
-plt.scatter(xx, yy, c=cc, edgecolor='',
-            cmap=plt.cm.gist_ncar,
-            s=10)
-cb = plt.colorbar()
-plt.clim(cmin,cmax)
-cb.set_ticks(np.arange(cmin,cmax+10,dc))
 plt.title('data',fontsize=10)
 plt.xlabel('Log(duration) (minutes)', fontsize=10)
 plt.ylabel('Log(relative amplitude)', fontsize=10)
