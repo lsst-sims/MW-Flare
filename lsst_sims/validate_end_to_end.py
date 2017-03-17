@@ -58,14 +58,14 @@ def make_density_data(xx_in, yy_in, dd):
     xx_arr = xx_arr[sorted_dex]*dd
     yy_arr = yy_arr[sorted_dex]*dd
     ct_arr = ct_arr[sorted_dex]
-    ct_arr = np.cumsum(ct_arr)/float(ct_arr.sum())
+    #ct_arr = np.cumsum(ct_arr)/float(ct_arr.sum())
 
     return xx_arr, yy_arr, ct_arr
 
 
 cmin = 0
-cmax = 1
-dc = 0.2
+cmax = 150
+dc = 25
 
 
 dtype = np.dtype([('start_dex', float), ('stop_dex', float),
