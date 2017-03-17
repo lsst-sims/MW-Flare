@@ -26,29 +26,12 @@ log_ekp = log_e - np.log10(0.65)
 
 plt.scatter(log_ekp, duration, marker='o', color='k')
 
-log_e = np.sort(log_e)
-log_ekp = np.sort(log_ekp)
-
-d_min = np.interp(log_ekp,
-                  duration_from_energy._model_data['ekp'],
-                  duration_from_energy._model_data['min'])
-
-d_max = np.interp(log_ekp,
-                  duration_from_energy._model_data['ekp'],
-                  duration_from_energy._model_data['max'])
-
-d_mean = np.interp(log_ekp,
-                   duration_from_energy._model_data['ekp'],
-                   duration_from_energy._model_data['mean'])
-
-plt.plot(log_ekp, d_min)
-plt.plot(log_ekp, d_mean, linestyle='--')
-plt.plot(log_ekp, d_max)
-
-
 plt.yscale('log')
 
 plt.xlabel('log(E_kepler) (ergs)')
 plt.ylabel('duration (min)')
+plt.xlim(29,33)
+plt.xticks(range(29,33))
+plt.ylim(1,200)
 
 plt.savefig('plots/duration_plot.png')

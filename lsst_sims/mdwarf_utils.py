@@ -198,9 +198,62 @@ def draw_energies(stellar_class, duration, rng):
 
     return time_list/24.0, energy_list
 
+def _set_up_duration_models():
+    """
+    Compute the mean and standard deviation of log10(duration) in minutes
+    in bins of 1 dex in log10(E_kp).
+
+    Data taken from http://github.com/jradavenport/GJ1243-Flares
+
+    Returns
+    -------
+    numpy array of energies (middle of bins)
+
+    numpy array of mean log10(duration)s
+
+    numpy array of standard deviation of log10(duration)s
+    """
+
+    dtype = np.dtype([('start_dex', float), ('stop_dex', float),
+                      ('start', float), ('stop', float), ('peak', float),
+                      ('rise', float), ('decay', float), ('amp', float),
+                      ('e_dur', float), ('e_dur_rise', float),
+                      ('e_dur_decay', float), ('flag', float),
+                      ('ppl_flare', float), ('ppl_month', float),
+                      ('components', float)])
+
+    data = np.genfromtxt('data/gj1243_master_flares.tbl', dtype=dtype)
+
+    duration = (data['stop'] - data['start'])*24.0*60.0
+
+    log_ekp_quiescent = 30.67
+    log_ekp = log_ekp_quiescent + np.log10(data['e_dur'])
+
+    e_min_arr = np.array(range(29,33))
+    e_max_arr = e_min_arr + 1
+
+    mean_arr = []
+    std_dev_arr = []
+
+    for e_min, e_max in zip(e_min_arr, e_max_arr):
+        valid = np.where(np.logical_and(log_ekp>=e_min, log_ekp<=e_max))
+        bin_data = np.log10(duration[valid])
+        mean = np.mean(bin_data)
+        std_dev = np.std(bin_data)
+        mean_arr.append(mean)
+        std_dev_arr.append(std_dev)
+
+    return 0.5*(e_min_arr+e_max_arr), np.array(mean_arr), np.array(std_dev_arr)
+
 
 def duration_from_energy(energy_u, rng):
     """
+    Find duration as a function of energy by drawing from a Gaussian
+    whose mean is calculated by linearly fitting the mean duration in
+    energy bins from the energy versus duration bin of Figure 10 of
+    Hawley et al 2014 (ApJ 797, 121) and whose standard deviation is
+    set to 0.16 (also from the data underlying that plot).
+
     Parameters
     ----------
     energy_u is the energy of the flare in the Johnson U band
@@ -215,46 +268,35 @@ def duration_from_energy(energy_u, rng):
     Hawley et al. 2014 (ApJ 797, 121)
     """
 
-    if not hasattr(duration_from_energy, '_model_data'):
+    if not hasattr(duration_from_energy, '_mean_mm'):
 
-        file_name = os.path.join('lsst_sims', 'data',
-                                 'duration_Hawley_et_al_2014.txt')
-        if not os.path.exists(file_name):
-            file_name = os.path.join('data', 'duration_Hawley_et_al_2014.txt')
-            if not os.path.exists(file_name):
-                raise RuntimeError("Could not find duration_Hawley_et_al_2014.txt\n"
-                                   "Be sure you are running duration_from_energy "
-                                   "from either MW-flare or MW-flare/lsst_sims/")
-
-        dtype = np.dtype([('ekp', float), ('mean', float), ('min', float),
-                          ('max', float)])
-
-        duration_from_energy._model_data = np.genfromtxt(file_name, dtype=dtype)
+        log_ekp, mean, stdev = _set_up_duration_models()
 
         # transform to Johnson U band
         # See Hawley et al 2014, last
         # paragraph before Section 3
-        duration_from_energy._eu = (duration_from_energy._model_data['ekp'] +
-                                    np.log10(0.65))
+        log_eu = log_ekp + np.log10(0.65)
+
+        duration_from_energy._stdev = 0.16
+
+        n_data = float(len(log_eu))
+        mm = (log_eu*(mean-(mean.sum()/n_data))).sum()
+        mm = mm/((log_eu*log_eu).sum() - log_eu.sum()*log_eu.sum()/n_data)
+
+        bb = (mean-mm*log_eu).sum()/n_data
+
+        duration_from_energy._mean_mm = mm
+        duration_from_energy._mean_bb = bb
 
     log_e = np.log10(energy_u)
 
-    min_dur = np.interp(log_e,
-                        duration_from_energy._eu,
-                        duration_from_energy._model_data['min'])
-
-    max_dur = np.interp(log_e,
-                        duration_from_energy._eu,
-                        duration_from_energy._model_data['max'])
-
-    mean_dur = np.interp(log_e,
-                         duration_from_energy._eu,
-                         duration_from_energy._model_data['mean'])
+    mean_dur = duration_from_energy._mean_mm*log_e + duration_from_energy._mean_bb
+    sigma = duration_from_energy._stdev
 
     normal_deviate = rng.normal(loc=0.0, scale=1.0, size=len(energy_u))
-    sigma = 0.25*(max_dur-min_dur)
+
     duration = normal_deviate*sigma + mean_dur
-    return duration
+    return np.power(10.0, duration)
 
 
 def _f_rise_of_t(t):
