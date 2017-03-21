@@ -345,30 +345,21 @@ def amplitude_from_duration_energy(duration, energy_u):
 
     Returns
     -------
-    The amplitude (in ergs; *not* the relative amplitude) of the flare.
+    The amplitude (in ergs/s; *not* the relative amplitude) of the flare.
     """
 
     if not hasattr(amplitude_from_duration_energy, '_t_rise'):
-        t_rise = np.arange(-1.0, 0.0, 0.01)
-        t_decay = np.arange(0.0, 7.0, 0.01)
+        dt = 0.01
+        t_rise = np.arange(-1.0, 0.0+0.5*dt, dt)
+        t_decay = np.arange(0.0, 7.0, dt)
         f_rise = _f_rise_of_t(t_rise)
         f_decay = _f_decay_of_t(t_decay)
-        amplitude_from_duration_energy._t_rise = t_rise
-        amplitude_from_duration_energy._t_decay = t_decay
-        amplitude_from_duration_energy._f_rise = f_rise
-        amplitude_from_duration_energy._f_decay = f_decay
+        amplitude_from_duration_energy._f_rise = dt*0.5*(f_rise[1:]+f_rise[:-1]).sum()
+        amplitude_from_duration_energy._f_decay = dt*0.5*(f_decay[1:]+f_decay[:-1]).sum()
 
     t_fwhm_array = duration/8.0
-    t_rise = np.outer(t_fwhm_array, amplitude_from_duration_energy._t_rise)
-    t_decay = np.outer(t_fwhm_array, amplitude_from_duration_energy._t_decay)
-    f_rise = amplitude_from_duration_energy._f_rise
-    f_decay = amplitude_from_duration_energy._f_decay
-
-    assert t_rise.shape[1] == len(amplitude_from_duration_energy._t_rise)
-    assert t_rise.shape[0] == len(duration)
-
-    rising_flux = np.dot(t_rise, f_rise)
-    decaying_flux = np.dot(t_decay, f_decay)
+    rising_flux = t_fwhm_array*amplitude_from_duration_energy._f_rise
+    decaying_flux = t_fwhm_array*amplitude_from_duration_energy._f_decay
 
     amplitude = energy_u/(rising_flux + decaying_flux)
 
