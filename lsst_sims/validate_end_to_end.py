@@ -13,6 +13,15 @@ import numpy as np
 from mdwarf_utils import (draw_energies, duration_from_energy,
                           amplitude_from_duration_energy)
 
+def make_distribution(xx_in, dd, color='k'):
+    xx_dex = np.round(xx_in/dd).astype(int)
+    unq, ct = np.unique(xx_dex, return_counts=True)
+
+    sorted_dex = np.argsort(unq)
+
+    return plt.plot(unq[sorted_dex]*dd, ct[sorted_dex], color=color)
+
+
 def make_density_plot(xx_in, yy_in, dd):
     cmin = 0
     cmax = 150
@@ -188,5 +197,34 @@ plt.xticks(range(0,3))
 
 
 plt.tight_layout()
-plt.savefig('plots/end_to_end_plot.png')
+plt.savefig('plots/end_to_end_2D.png')
 print 'control ',len(control_data),' sim ',len(amp_rel)
+plt.close()
+
+plt.figsize = (30, 30)
+plt.subplot(2,2,1)
+header_list = []
+label_list = []
+hh, = make_distribution(log_ekp_flare, 0.1, color='k')
+header_list.append(hh)
+label_list.append('simulations')
+hh, = make_distribution(control_log_ekp, 0.1, color='r')
+header_list.append(hh)
+label_list.append('data')
+plt.xlabel('Log(E_kp)')
+
+plt.legend(header_list, label_list, loc=0)
+
+plt.subplot(2,2,2)
+make_distribution(np.log10(duration), 0.1, color='k')
+make_distribution(np.log10(control_duration), 0.1, color='r')
+plt.xlabel('Log(duration)')
+
+plt.subplot(2,2,3)
+make_distribution(np.log10(amp_rel), 0.1, color='k')
+make_distribution(np.log10(control_amp), 0.1, color='r')
+plt.xlabel('Log(amplitude)')
+
+plt.tight_layout()
+plt.savefig('plots/end_to_end_1D.png')
+plt.close()
