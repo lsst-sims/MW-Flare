@@ -62,7 +62,7 @@ label_list = ['simulated']
 hh, = make_distribution_plot(np.log10(control_duration), dx, color='r')
 header_list.append(hh)
 label_list.append('data')
-plt.legend(header_list, label_list, loc=0)
+plt.legend(header_list, label_list, loc=0, fontsize=10)
 plt.xlabel('Log(duration in minutes)')
 plt.ylabel('N')
 
