@@ -357,7 +357,7 @@ def amplitude_from_duration_energy(duration, energy_u):
         amplitude_from_duration_energy._f_rise = dt*0.5*(f_rise[1:]+f_rise[:-1]).sum()
         amplitude_from_duration_energy._f_decay = dt*0.5*(f_decay[1:]+f_decay[:-1]).sum()
 
-    t_fwhm_array = duration/8.0
+    t_fwhm_array = duration/4.0
     rising_flux = t_fwhm_array*amplitude_from_duration_energy._f_rise
     decaying_flux = t_fwhm_array*amplitude_from_duration_energy._f_decay
 
