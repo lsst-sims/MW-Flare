@@ -2,10 +2,12 @@ from __future__ import with_statement
 import numpy as np
 import os
 from lsst.sims.utils import radiansFromArcsec
+from lsst.sims.photUtils import Bandpass, BandpassDict
+from lsst.utils import getPackageDir
 
 __all__ = ["xyz_from_lon_lat_px", "prob_of_type", "draw_energies",
            "duration_from_energy", "fwhm_from_duration",
-           "amplitude_from_fwhm_energy"]
+           "amplitude_from_fwhm_energy", "lsst_flare_fluxes_from_u"]
 
 def xyz_from_lon_lat_px(lon, lat, px):
     """
@@ -383,6 +385,88 @@ def amplitude_from_fwhm_energy(t_fwhm, energy_u):
     assert len(amplitude) == len(energy_u)
 
     return amplitude
+
+def lsst_flare_fluxes_from_u(u_flux):
+    """
+    Convert from Johnson U band flux to flux in the LSST bands
+    by assuming the flare is a 9000K black body (see Section 4
+    of Hawley et al 2003, ApJ 597, 535)
+
+    Parameters
+    ----------
+    flux in Johnson U band (either a float or a numpy array)
+
+    Returns
+    -------
+    floats/numpy arrays of fluxes in all 6 LSST bands
+    """
+
+    if not hasattr(lsst_flare_fluxes_from_u, 'johnson_u_flux'):
+        throughputs_dir = getPackageDir('throughputs')
+        johnson_dir = os.path.join(throughputs_dir, 'johnson')
+        johnson_u_hw = Bandpass()
+        johnson_u_hw.readThroughput(os.path.join(johnson_dir, 'johnson_U.dat'))
+        atm = Bandpass()
+        atm.readThroughput(os.path.join(throughputs_dir,
+                                        'baseline', 'atmos_std.dat'))
+
+        wv, sb = johnson_u_hw.multiplyThroughputs(atm.wavelen, atm.sb)
+        johnson_u = Bandpass(wavelen=wv, sb=sb)
+
+        boltzmann_k = 1.3807e-16  # erg/K
+        planck_h = 6.6261e-27  # erg*s
+        _c = 2.9979e10  # cm/s
+
+        hc_over_k = 1.4387e7  # nm*K
+
+        temp = 9000.0  # black body temperature in Kelvin
+
+        bb_wavelen = np.arange(200.0, 1500.0, 0.1)  # in nanometers
+
+        exp_arg = -1.0*hc_over_k/(temp*bb_wavelen)
+
+        log_bb_flambda = -5.0*np.log(bb_wavelen) + exp_arg
+        bb_flambda = np.exp(log_bb_flambda)
+
+        # Note: we are ignoring the 2*h*c^2 term, as well as all other
+        # normalization terms, because we are only interested in
+        # how the fluxes scale relatively between the 7 bands (Johnson U
+        # and the 6 LSST bands)
+
+        bb_int_flambda = np.interp(johnson_u.wavelen, bb_wavelen, bb_flambda)
+
+        # calculate the flux (with an arbitrary normalization) of the 9000K
+        # black body in the Johnson_U band and the lsst bands
+
+        # integrate the flux of the black body over the Johnson U band
+        bb_johnson_u = (0.5*(johnson_u.wavelen[1]-johnson_u.wavelen[0])
+                        *(johnson_u.sb[1:]*bb_int_flambda[1:] +
+                          johnson_u.sb[:-1]*bb_int_flambda[:-1]).sum())
+
+        lsst_flare_fluxes_from_u.johnson_u_raw_flux = bb_johnson_u
+
+        lsst_flare_fluxes_from_u.lsst_raw_flux_dict = {}
+        lsst_bands = BandpassDict.loadTotalBandpassesFromFiles()
+        for band_name in ('u', 'g', 'r', 'i', 'z', 'y'):
+            bp = lsst_bands[band_name]
+            bb_int_flambda = np.interp(bp.wavelen, bb_wavelen, bb_flambda)
+
+            flux = (0.5*(bp.wavelen[1]-bp.wavelen[0])
+                    *(bp.sb[1:]*bb_int_flambda[1:] +
+                      bp.sb[:-1]*bb_int_flambda[:-1]).sum())
+
+            lsst_flare_fluxes_from_u.lsst_raw_flux_dict[band_name] = flux
+
+    factor = u_flux/lsst_flare_fluxes_from_u.johnson_u_raw_flux
+    u_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['u']
+    g_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['g']
+    r_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['r']
+    i_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['i']
+    z_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['z']
+    y_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['y']
+
+    return (u_flux, g_flux, r_flux, i_flux, z_flux, y_flux)
+
 
 def light_curve_from_fwhm_amplitude(fwhm, amplitude, years, dt=15.0):
     """
