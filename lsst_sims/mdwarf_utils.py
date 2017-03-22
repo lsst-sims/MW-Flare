@@ -468,19 +468,24 @@ def lsst_flare_fluxes_from_u(u_flux):
     return (u_flux, g_flux, r_flux, i_flux, z_flux, y_flux)
 
 
-def light_curve_from_fwhm_amplitude(fwhm, amplitude, years, dt=15.0):
+
+def light_curve_from_class(stellar_class, years, rng, dt=15.0):
     """
     Simulate a flaring star light curve
 
     Parameters
     ----------
-    fwhm is the time width of the flares at half of the maximum flux
-    in minutes
-
-    amplitude is the amplitude of each light flare in ergs/s in the
-    Johnson U band
+    stellar_class is either
+        early_inactive
+        early_active
+        mid_inactive
+        mid_active
+        late_active
 
     years is the number of years to simulate
+
+    rng is an instantiation of numpy.random.RandomState to be used
+    as a random number generator
 
     dt is the time step to take in seconds
 
@@ -495,4 +500,32 @@ def light_curve_from_fwhm_amplitude(fwhm, amplitude, years, dt=15.0):
     that 10^32 ergs/s need to be added on top of the star's
     quiescent luminosity)
     """
-    return None
+
+    t_peak_arr, energy_arr = draw_energies(stellar_class, years*365.25, rng)
+    duration_arr = duration_from_energy(energy_arr, rng)
+    fwhm_arr = fwhm_from_duration(duration_arr)
+    del duration_arr
+    amplitude_arr = amplitude_from_fwhm_energy(fwhm_arr, energy_arr)
+    del energy_arr
+
+    sec_per_year = 365.25*24.0*3600.0
+    time_sec_arr = np.arange(0.0, years*sec_per_year, dt)
+
+    johnson_u_flux = np.zeros(len(time_sec_arr))
+
+    fwhm_arr = fwhm_arr*60.0  # convert to seconds
+    for amp, fwhm, t_peak in zip(amplitude_arr, fwhm_arr, t_peak_arr*86400.0):
+
+        d_flux = np.piecewise((time_sec_arr-t_peak)/fwhm,
+                              [np.logical_and(t_peak-time_sec_arr>=0.0, t_peak-time_sec_arr<=fwhm),
+                               np.logical_and(time_sec_arr-t_peak>0.0, time_sec_arr-t_peak<=7.0*fwhm)],
+                              [_f_rise_of_t, _f_decay_of_t])
+
+        johnson_u_flux += amp*d_flux
+
+    (u_flux, g_flux, r_flux,
+     i_flux, z_flux, y_flux) = lsst_flare_fluxes_from_u(johnson_u_flux)
+
+    return (time_sec_arr/86400.0,
+            u_flux, g_flux, r_flux,
+            i_flux, z_flux, y_flux)
