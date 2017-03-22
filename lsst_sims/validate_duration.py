@@ -67,8 +67,8 @@ plt.xlabel('Log(duration in minutes)')
 plt.ylabel('N')
 
 plt.subplot(2,2,4)
-make_distribution_plot(np.log10(np.abs(duration-control_duration)), dx)
-plt.xlabel('Log( |duration - simulated duration| )')
+make_distribution_plot((duration-control_duration)/control_duration, dx)
+plt.xlabel('(duration - simulated duration)/duration')
 plt.ylabel('N')
 
 plt.tight_layout()
