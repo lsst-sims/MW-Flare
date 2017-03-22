@@ -7,7 +7,9 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from mdwarf_utils import duration_from_energy, amplitude_from_duration_energy
+from mdwarf_utils import duration_from_energy
+from mdwarf_utils import fwhm_from_duration
+from mdwarf_utils import amplitude_from_fwhm_energy
 
 from plot_utils import make_distribution_plot, make_density_plot
 
@@ -37,7 +39,8 @@ log_eu = control_log_ekp + np.log10(0.65)
 eu = np.power(10.0, log_eu)
 rng = np.random.RandomState(88)
 
-amplitude_u = amplitude_from_duration_energy(duration, eu)
+t_fwhm = fwhm_from_duration(duration)
+amplitude_u = amplitude_from_fwhm_energy(t_fwhm, eu)
 
 # Convert to Kepler amplitude.
 # See paragraph before section 3 of Hawley et al 2014

@@ -331,15 +331,31 @@ def _f_decay_of_t(t):
 
     return 0.689*np.exp(-1.6*t) + 0.0303*np.exp(-0.2783*t)
 
-def amplitude_from_duration_energy(duration, energy_u):
+def fwhm_from_duration(dur):
+    """
+    Parameters
+    ----------
+    dur is the duration of the flare in minutes.
+
+    Returns
+    -------
+    The Full Width at Half Maximum time of the flare
+    in minutes (this is the independent parameter in
+    equations 1 and 4 of Davenport et al 2014
+    (ApJ 797, 122).
+    """
+    return dur/3.0
+
+def amplitude_from_fwhm_energy(t_fwhm, energy_u):
     """
     Based on the analytical flare model of Davenport et al 2014
     (ApJ 797, 122)
 
     Parameters
     ----------
-    duration of the flare in minutes (we will assert that the fwhm time
-    of the flare is just duration/8.0 as per Davenport et al 2014 Figure 5
+    t_fwhm is the width in time of the flare when its amplitude is
+    one half its maximum (this is the independent parameter in
+    equations 1 and 4 of Davenport et al 2014).  In minutes.
 
     energy is the energy of the flare in ergs in the Johnson U band
 
@@ -348,22 +364,21 @@ def amplitude_from_duration_energy(duration, energy_u):
     The amplitude (in ergs/s; *not* the relative amplitude) of the flare.
     """
 
-    if not hasattr(amplitude_from_duration_energy, '_t_rise'):
+    if not hasattr(amplitude_from_fwhm_energy, '_t_rise'):
         dt = 0.01
         t_rise = np.arange(-1.0, 0.0+0.5*dt, dt)
         t_decay = np.arange(0.0, 7.0, dt)
         f_rise = _f_rise_of_t(t_rise)
         f_decay = _f_decay_of_t(t_decay)
-        amplitude_from_duration_energy._f_rise = dt*0.5*(f_rise[1:]+f_rise[:-1]).sum()
-        amplitude_from_duration_energy._f_decay = dt*0.5*(f_decay[1:]+f_decay[:-1]).sum()
+        amplitude_from_fwhm_energy._f_rise = dt*0.5*(f_rise[1:]+f_rise[:-1]).sum()
+        amplitude_from_fwhm_energy._f_decay = dt*0.5*(f_decay[1:]+f_decay[:-1]).sum()
 
-    t_fwhm_array = duration/4.0
-    rising_flux = t_fwhm_array*amplitude_from_duration_energy._f_rise
-    decaying_flux = t_fwhm_array*amplitude_from_duration_energy._f_decay
+    rising_flux = t_fwhm*amplitude_from_fwhm_energy._f_rise
+    decaying_flux = t_fwhm*amplitude_from_fwhm_energy._f_decay
 
     amplitude = energy_u/(60.0*(rising_flux + decaying_flux))
 
-    assert len(amplitude) == len(duration)
+    assert len(amplitude) == len(t_fwhm)
     assert len(amplitude) == len(energy_u)
 
     return amplitude

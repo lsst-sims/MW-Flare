@@ -11,7 +11,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from mdwarf_utils import (draw_energies, duration_from_energy,
-                          amplitude_from_duration_energy)
+                          amplitude_from_fwhm_energy,
+                          fwhm_from_duration)
 
 from plot_utils import make_distribution_plot, make_density_plot
 
@@ -42,7 +43,8 @@ t_flare, e_flare = draw_energies('mid_active', simulation_length, rng)
 
 duration = duration_from_energy(e_flare, rng)
 
-amp = amplitude_from_duration_energy(duration, e_flare)
+fwhm = fwhm_from_duration(duration)
+amp = amplitude_from_fwhm_energy(fwhm, e_flare)
 
 ekp_flare = e_flare/0.65 # paragraph before section 3 of Hawley et al 2014
 amp_kp = amp/0.65
