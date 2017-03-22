@@ -4,7 +4,8 @@ import os
 from lsst.sims.utils import radiansFromArcsec
 
 __all__ = ["xyz_from_lon_lat_px", "prob_of_type", "draw_energies",
-           "duration_from_energy"]
+           "duration_from_energy", "fwhm_from_duration",
+           "amplitude_from_fwhm_energy"]
 
 def xyz_from_lon_lat_px(lon, lat, px):
     """
