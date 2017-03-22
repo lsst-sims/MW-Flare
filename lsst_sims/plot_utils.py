@@ -15,10 +15,7 @@ def make_distribution_plot(xx_in, dd, color='k'):
     return plt.plot(unq[sorted_dex]*dd, ct[sorted_dex], color=color)
 
 
-def make_density_plot(xx_in, yy_in, dd):
-    cmin = 0
-    cmax = 150
-    dc = 25
+def make_density_plot(xx_in, yy_in, dd, cmin=0, cmax=150, dc=25):
 
     data_x = np.round(xx_in/dd).astype(int)
     data_y = np.round(yy_in/dd).astype(int)
