@@ -471,7 +471,10 @@ def lsst_flare_fluxes_from_u(u_flux):
 
 def light_curve_from_class(stellar_class, years, rng, dt=15.0):
     """
-    Simulate a flaring star light curve
+    Simulate a flaring star light curve.
+
+    This method draws heavily from the methods in aflare.py and
+    flare_prob.py in https://github.com/jradavenport/MW-Flare
 
     Parameters
     ----------
