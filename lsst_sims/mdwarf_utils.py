@@ -361,7 +361,7 @@ def amplitude_from_duration_energy(duration, energy_u):
     rising_flux = t_fwhm_array*amplitude_from_duration_energy._f_rise
     decaying_flux = t_fwhm_array*amplitude_from_duration_energy._f_decay
 
-    amplitude = energy_u/(rising_flux + decaying_flux)
+    amplitude = energy_u/(60.0*(rising_flux + decaying_flux))
 
     assert len(amplitude) == len(duration)
     assert len(amplitude) == len(energy_u)
