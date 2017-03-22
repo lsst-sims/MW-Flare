@@ -383,3 +383,32 @@ def amplitude_from_fwhm_energy(t_fwhm, energy_u):
     assert len(amplitude) == len(energy_u)
 
     return amplitude
+
+def light_curve_from_fwhm_amplitude(fwhm, amplitude, years, dt=15.0):
+    """
+    Simulate a flaring star light curve
+
+    Parameters
+    ----------
+    fwhm is the time width of the flares at half of the maximum flux
+    in minutes
+
+    amplitude is the amplitude of each light flare in ergs/s in the
+    Johnson U band
+
+    years is the number of years to simulate
+
+    dt is the time step to take in seconds
+
+    Returns
+    -------
+    time is a numpy array containing the times (in days)
+    corresponding to the flux
+
+    [u,g,r,i,z,y]_flux are numpy arrays containing the fluxes
+    in ergs/s in each of the LSST bands (0 flux means the star
+    is radiating at its quiescent luminosity; 10^32 ergs/s means
+    that 10^32 ergs/s need to be added on top of the star's
+    quiescent luminosity)
+    """
+    return None
