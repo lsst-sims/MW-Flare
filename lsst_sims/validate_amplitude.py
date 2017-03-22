@@ -30,13 +30,13 @@ control_data = control_data[valid]
 log_ekp_quiescent = 30.67
 
 control_log_ekp = log_ekp_quiescent + np.log10(control_data['e_dur'])
+duration = 24.0*60.0*(control_data['stop']-control_data['start'])
 
 log_eu = control_log_ekp + np.log10(0.65)
 
 eu = np.power(10.0, log_eu)
 rng = np.random.RandomState(88)
 
-duration = duration_from_energy(eu, rng)
 amplitude_u = amplitude_from_duration_energy(duration, eu)
 
 # Convert to Kepler amplitude.
@@ -48,7 +48,7 @@ amp_rel = amplitude_kp/np.power(10.0, log_ekp_quiescent)
 dx=0.05
 plt.figsize = (30, 30)
 plt.subplot(2,2,1)
-make_density_plot(control_log_ekp, np.log10(amp_rel), dx, cmax=40, dc=10)
+make_density_plot(control_log_ekp, np.log10(amp_rel), dx, cmax=80, dc=20)
 plt.xlabel('Log(E_kp)')
 plt.ylabel('Log(simulated amplitude)')
 plt.xlim(27, 34)
@@ -56,7 +56,7 @@ plt.ylim(-5, 1)
 
 plt.subplot(2,2,2)
 make_density_plot(control_log_ekp, np.log10(control_data['amp']), dx,
-                  cmax=40, dc=10)
+                  cmax=80, dc=20)
 plt.xlabel('Log(E_kp)')
 plt.ylabel('Log(amplitude')
 plt.xlim(27, 34)
