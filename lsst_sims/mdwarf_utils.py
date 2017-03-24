@@ -2,7 +2,7 @@ from __future__ import with_statement
 import numpy as np
 import os
 from lsst.sims.utils import radiansFromArcsec
-from lsst.sims.photUtils import Bandpass, BandpassDict
+from lsst.sims.photUtils import Bandpass, BandpassDict, Sed
 from lsst.utils import getPackageDir
 
 __all__ = ["xyz_from_lon_lat_px", "prob_of_type", "draw_energies",
@@ -449,13 +449,18 @@ def lsst_flare_fluxes_from_u(u_flux):
         lsst_flare_fluxes_from_u.lsst_raw_flux_dict = {}
         lsst_bands = BandpassDict.loadTotalBandpassesFromFiles()
         print 'raw flux in johnnson U = %e ' % bb_johnson_u
+
+        # because we are going to want to convert our light curve
+        # fluxes into magnitudes using Sed.magFromFlux(), we
+        # need to calculate these unnormalized fluxes with
+        # Sed.calcFlux() (which calculates the flux in counts
+        # through the normalized bandpass; see eqn 2.1 of
+        # the LSST Science Book)
+        bb_sed = Sed(wavelen=bb_wavelen, flambda=bb_flambda)
         for band_name in ('u', 'g', 'r', 'i', 'z', 'y'):
             bp = lsst_bands[band_name]
-            bb_int_flambda = np.interp(bp.wavelen, bb_wavelen, bb_flambda)
 
-            flux = (0.5*(bp.wavelen[1]-bp.wavelen[0])
-                    *(bp.sb[1:]*bb_int_flambda[1:] +
-                      bp.sb[:-1]*bb_int_flambda[:-1]).sum())
+            flux = bb_sed.calcFlux(bp)
 
             lsst_flare_fluxes_from_u.lsst_raw_flux_dict[band_name] = flux
             print 'raw flux in %s = %e' % (band_name,flux)
