@@ -481,7 +481,7 @@ def lsst_flare_fluxes_from_u(u_flux):
 
 
 
-def light_curve_from_class(stellar_class, years, rng, dt=15.0):
+def light_curve_from_class(stellar_class, years, rng):
     """
     Simulate a flaring star light curve.
 
@@ -501,8 +501,6 @@ def light_curve_from_class(stellar_class, years, rng, dt=15.0):
 
     rng is an instantiation of numpy.random.RandomState to be used
     as a random number generator
-
-    dt is the time step to take in seconds
 
     Returns
     -------
@@ -524,16 +522,38 @@ def light_curve_from_class(stellar_class, years, rng, dt=15.0):
     del energy_arr
 
     sec_per_year = 365.25*24.0*3600.0
-    time_sec_arr = np.arange(0.0, years*sec_per_year, dt)
+    t_peak_sec_arr = t_peak_arr*86400.0
+    fwhm_arr = fwhm_arr*60.0  # convert to seconds
+
+    time_sec_arr = None
+    end_target = 1.0e-3*amplitude_arr.min()  # the flux at which a flare is over
+    for t_peak, fwhm, amp in zip(t_peak_sec_arr, fwhm_arr, amplitude_arr):
+        end_time = np.log(end_target/amp)/(-0.2783)  # in units of fwhm
+        dt = 0.1*fwhm
+        if dt<15.0:
+            dt = 15.0
+        local_time = np.arange(t_peak-1.2*fwhm, t_peak, dt)
+        dt = 0.5*fwhm
+        if dt<15.0:
+            dt = 15.0
+        local_time = np.append(local_time, np.arange(t_peak, t_peak+end_time*fwhm, dt))
+        if time_sec_arr is None:
+            time_sec_arr = local_time
+        else:
+            time_sec_arr = np.append(time_sec_arr, local_time)
+
+    time_sec_arr = np.unique(time_sec_arr)
+    time_sec_arr = np.sort(time_sec_arr)
 
     johnson_u_flux = np.zeros(len(time_sec_arr))
 
-    fwhm_arr = fwhm_arr*60.0  # convert to seconds
-    for amp, fwhm, t_peak in zip(amplitude_arr, fwhm_arr, t_peak_arr*86400.0):
+    for amp, fwhm, t_peak in zip(amplitude_arr, fwhm_arr, t_peak_sec_arr):
+
+        end_time = np.log(end_target/amp)/(-0.2783)  # in units of fwhm
 
         d_flux = np.piecewise((time_sec_arr-t_peak)/fwhm,
                               [np.logical_and(t_peak-time_sec_arr>=0.0, t_peak-time_sec_arr<=fwhm),
-                               np.logical_and(time_sec_arr-t_peak>0.0, time_sec_arr-t_peak<=7.0*fwhm)],
+                               np.logical_and(time_sec_arr-t_peak>0.0, time_sec_arr-t_peak<=end_time*fwhm)],
                               [_f_rise_of_t, _f_decay_of_t])
 
         johnson_u_flux += amp*d_flux
