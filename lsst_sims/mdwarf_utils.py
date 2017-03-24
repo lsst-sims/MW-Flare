@@ -386,6 +386,7 @@ def amplitude_from_fwhm_energy(t_fwhm, energy_u):
 
     return amplitude
 
+
 def lsst_flare_fluxes_from_u(u_flux):
     """
     Convert from Johnson U band flux to flux in the LSST bands
@@ -447,6 +448,7 @@ def lsst_flare_fluxes_from_u(u_flux):
 
         lsst_flare_fluxes_from_u.lsst_raw_flux_dict = {}
         lsst_bands = BandpassDict.loadTotalBandpassesFromFiles()
+        print 'raw flux in johnnson U = %e ' % bb_johnson_u
         for band_name in ('u', 'g', 'r', 'i', 'z', 'y'):
             bp = lsst_bands[band_name]
             bb_int_flambda = np.interp(bp.wavelen, bb_wavelen, bb_flambda)
@@ -456,8 +458,10 @@ def lsst_flare_fluxes_from_u(u_flux):
                       bp.sb[:-1]*bb_int_flambda[:-1]).sum())
 
             lsst_flare_fluxes_from_u.lsst_raw_flux_dict[band_name] = flux
+            print 'raw flux in %s = %e' % (band_name,flux)
 
     factor = u_flux/lsst_flare_fluxes_from_u.johnson_u_raw_flux
+
     u_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['u']
     g_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['g']
     r_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['r']
