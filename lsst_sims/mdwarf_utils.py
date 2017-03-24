@@ -464,6 +464,7 @@ def lsst_flare_fluxes_from_u(u_flux):
 
             lsst_flare_fluxes_from_u.lsst_raw_flux_dict[band_name] = flux
             print 'raw flux in %s = %e' % (band_name,flux)
+        print 'sed johnson flux %e' % bb_sed.calcFlux(johnson_u)
 
     factor = u_flux/lsst_flare_fluxes_from_u.johnson_u_raw_flux
 
