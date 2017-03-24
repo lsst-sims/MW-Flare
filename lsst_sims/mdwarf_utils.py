@@ -402,7 +402,7 @@ def lsst_flare_fluxes_from_u(u_flux):
     floats/numpy arrays of fluxes in all 6 LSST bands
     """
 
-    if not hasattr(lsst_flare_fluxes_from_u, 'johnson_u_flux'):
+    if not hasattr(lsst_flare_fluxes_from_u, 'johnson_u_raw_flux'):
         throughputs_dir = getPackageDir('throughputs')
         johnson_dir = os.path.join(throughputs_dir, 'johnson')
         johnson_u_hw = Bandpass()
