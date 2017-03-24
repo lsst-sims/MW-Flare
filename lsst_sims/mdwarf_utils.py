@@ -539,6 +539,9 @@ def light_curve_from_class(stellar_class, years, rng, dt=15.0):
     (u_flux, g_flux, r_flux,
      i_flux, z_flux, y_flux) = lsst_flare_fluxes_from_u(johnson_u_flux)
 
+    print(len(u_flux),' time steps')
+    print(len(np.where(u_flux>1.0e-30)[0]),' non-zero')
+
     return (time_sec_arr/86400.0,
             u_flux, g_flux, r_flux,
             i_flux, z_flux, y_flux)
