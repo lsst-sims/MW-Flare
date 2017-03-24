@@ -199,7 +199,9 @@ def draw_energies(stellar_class, duration, rng):
 
     time_list = rng.random_sample(total_n_flares)*duration_hours
 
-    return time_list/24.0, energy_list
+    sorted_dex = np.argsort(time_list)
+
+    return time_list[sorted_dex]/24.0, energy_list[sorted_dex]
 
 def _set_up_duration_models():
     """
