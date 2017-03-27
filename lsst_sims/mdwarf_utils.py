@@ -426,9 +426,11 @@ def lsst_flare_fluxes_from_u(u_flux):
 
         bb_wavelen = np.arange(200.0, 1500.0, 0.1)  # in nanometers
 
-        exp_arg = -1.0*hc_over_k/(temp*bb_wavelen)
+        exp_arg = hc_over_k/(temp*bb_wavelen)
+        exp_term = 1.0/(np.exp(exp_arg) - 1.0)
+        ln_exp_term = np.log(exp_term)
 
-        log_bb_flambda = -5.0*np.log(bb_wavelen) + exp_arg
+        log_bb_flambda = -5.0*np.log(bb_wavelen) + ln_exp_term
         bb_flambda = np.exp(log_bb_flambda)
 
         # Note: we are ignoring the 2*h*c^2 term, as well as all other
