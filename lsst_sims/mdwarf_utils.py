@@ -532,15 +532,15 @@ def light_curve_from_class(stellar_class, years, rng):
         dt = 0.1*fwhm
         if dt<15.0:
             dt = 15.0
-        local_time = np.arange(t_peak-1.2*fwhm, t_peak, dt)
+        local_time = list(np.arange(t_peak-1.2*fwhm, t_peak, dt))
         dt = 0.5*fwhm
         if dt<15.0:
             dt = 15.0
-        local_time = np.append(local_time, np.arange(t_peak, t_peak+end_time*fwhm, dt))
+        local_time += list(np.arange(t_peak, t_peak+end_time*fwhm, dt))
         if time_sec_arr is None:
             time_sec_arr = local_time
         else:
-            time_sec_arr = np.append(time_sec_arr, local_time)
+            time_sec_arr += local_time
 
     time_sec_arr = np.unique(time_sec_arr)
     time_sec_arr = np.sort(time_sec_arr)
