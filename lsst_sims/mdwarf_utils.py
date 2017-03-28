@@ -461,13 +461,16 @@ def lsst_flare_fluxes_from_u(u_flux):
         # through the normalized bandpass; see eqn 2.1 of
         # the LSST Science Book)
         bb_sed = Sed(wavelen=bb_wavelen, flambda=bb_flambda)
+        norm_raw = None
         for band_name in ('u', 'g', 'r', 'i', 'z', 'y'):
             bp = lsst_bands[band_name]
 
             flux = bb_sed.calcFlux(bp)
 
             lsst_flare_fluxes_from_u.lsst_raw_flux_dict[band_name] = flux
-            print 'raw flux in %s = %e' % (band_name,flux)
+            if norm_raw is None:
+                norm_raw = flux
+            print 'raw flux in %s = %e; %e' % (band_name,flux,flux/norm_raw)
         print 'sed johnson flux %e' % bb_sed.calcFlux(johnson_u)
 
     factor = u_flux/lsst_flare_fluxes_from_u.johnson_u_raw_flux
