@@ -485,6 +485,40 @@ def lsst_flare_fluxes_from_u(u_flux):
     return (u_flux, g_flux, r_flux, i_flux, z_flux, y_flux)
 
 
+def _generate_light_curve_params(stellar_class, years, rng):
+    """
+    Find the times, FWHM, and amplitudes of the flares for a given
+    star over a period of time.
+
+    Parameters
+    ----------
+    stellar_class is a string denoting the flaring class of the star
+    ('early_active', 'early_inactive', 'mid_active', 'mid_inactive',
+    'late_active)
+
+    years is the number of years over which to simulate flares
+
+    rng is an instance of numpy.random.RandomState()
+
+    Results
+    -------
+    t_peak_arr is a numpy array of the dates of the flare peaks
+    (in units of days)
+
+    fwhm_arr is a numpy array of the FWHM times of the flares
+    (in units of minutes)
+
+    amplitude_arr is a numpy array of the amplitude of the flares
+    (in units of ergs/sec)
+    """
+    t_peak_arr, energy_arr = draw_energies(stellar_class, years*365.25, rng)
+    duration_arr = duration_from_energy(energy_arr, rng)
+    fwhm_arr = fwhm_from_duration(duration_arr)
+    del duration_arr
+    amplitude_arr = amplitude_from_fwhm_energy(fwhm_arr, energy_arr)
+    del energy_arr
+
+    return t_peak_arr, fwhm_arr, amplitude_arr
 
 def light_curve_from_class(stellar_class, years, rng):
     """
@@ -519,12 +553,9 @@ def light_curve_from_class(stellar_class, years, rng):
     quiescent luminosity)
     """
 
-    t_peak_arr, energy_arr = draw_energies(stellar_class, years*365.25, rng)
-    duration_arr = duration_from_energy(energy_arr, rng)
-    fwhm_arr = fwhm_from_duration(duration_arr)
-    del duration_arr
-    amplitude_arr = amplitude_from_fwhm_energy(fwhm_arr, energy_arr)
-    del energy_arr
+    (t_peak_arr,
+     fwhm_arr,
+     amplitude_arr) = _generate_light_curve_params(stellar_class, years, rng)
 
     sec_per_year = 365.25*24.0*3600.0
     t_peak_sec_arr = t_peak_arr*86400.0
