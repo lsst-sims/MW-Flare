@@ -39,6 +39,41 @@ def fit_to_exp_decay(xx_data, yy_data, sigma_data):
     return aa_best, tau_best, bb_best
 
 
+def _build_activity_model():
+    """
+    Read in data taken from West et al. 2008 (AJ 135, 785).
+    For each spectral type, return the parametrs A, tau, B
+    needed to model spectral activity as a function of
+    distance from the Galactic Plane as
+
+    fraction active = A*exp(-z/tau) + B
+    """
+    model_dict = {}
+    data_dir = 'data/activity_by_type'
+
+    dtype = np.dtype([('z', float), ('frac', float),
+                      ('min', float), ('max', float)])
+
+    for i_type in range(9):
+        model_type = 'M%d' % i_type
+        data_name = os.path.join(data_dir, '%s.txt' % model_type)
+        data = np.genfromtxt(data_name, dtype=dtype)
+
+        sigma_arr = []
+        for nn, xx in zip(data['min'], data['max']):
+            if nn>1.0e-20 and xx<0.999:
+                sigma = 0.5*(xx-nn)
+            else:
+                sigma = xx-nn
+            sigma_arr.append(sigma)
+        aa, tau, bb = fit_to_exp_decay(data['z'], data['frac'], np.array(sigma_arr))
+        model_dict[model_type] = {}
+        model_dict[model_type]['a'] = aa
+        model_dict[model_type]['tau'] = tau
+        model_dict[model_type]['b'] = bb
+
+    return model_dict
+
 def find_fraction_spec_active(star_type, z):
     """
     Find the fraction of a spectral type that is active (in the spectroscopic
@@ -58,31 +93,7 @@ def find_fraction_spec_active(star_type, z):
     """
 
     if not hasattr(find_fraction_spec_active, '_model_dict'):
-        model_dict = {}
-        data_dir = 'data/activity_by_type'
-
-        dtype = np.dtype([('z', float), ('frac', float),
-                          ('min', float), ('max', float)])
-
-        for i_type in range(9):
-            model_type = 'M%d' % i_type
-            data_name = os.path.join(data_dir, '%s.txt' % model_type)
-            data = np.genfromtxt(data_name, dtype=dtype)
-
-            sigma_arr = []
-            for nn, xx in zip(data['min'], data['max']):
-                if nn>1.0e-20 and xx<0.999:
-                    sigma = 0.5*(xx-nn)
-                else:
-                    sigma = xx-nn
-                sigma_arr.append(sigma)
-            aa, tau, bb = fit_to_exp_decay(data['z'], data['frac'], np.array(sigma_arr))
-            model_dict[model_type] = {}
-            model_dict[model_type]['a'] = aa
-            model_dict[model_type]['tau'] = tau
-            model_dict[model_type]['b'] = bb
-
-            find_fraction_spec_active._model_dict = model_dict
+        find_fraction_spec_active._model_dict = _build_activity_model()
 
     aa = find_fraction_spec_active._model_dict[star_type]['a']
     tau = find_fraction_spec_active._model_dict[star_type]['tau']
