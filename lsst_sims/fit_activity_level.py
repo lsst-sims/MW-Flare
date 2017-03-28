@@ -54,7 +54,7 @@ def find_fraction_spec_active(star_type, z):
     Returns
     -------
     The fraction of that spectral type at that Galactic Plane distance
-    that are activve
+    that are active
     """
 
     if not hasattr(find_fraction_spec_active, '_model_dict'):
