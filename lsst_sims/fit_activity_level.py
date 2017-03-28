@@ -101,6 +101,86 @@ def find_fraction_spec_active(star_type, z):
     return aa*np.exp(-1.0*z/tau) + bb
 
 
+def _find_fudge_factor():
+    """
+    Find the 'fudge factor' relating the scale height of spectral
+    activity to the scale height of flaring activity from Figure 12
+    of Hilton et al 2010 (AJ 140, 1402)
+    """
+    data_dir = "data"
+    dtype = np.dtype([('z', float), ('frac', float)])
+
+    active_data = np.genfromtxt(os.path.join(data_dir,
+                                             'activity_rate_Hilton_et_al_2010.txt'),
+                                dtype=dtype)
+
+    flare_data = np.genfromtxt(os.path.join(data_dir,
+                                            'flare_rate_Hilton_et_al_2010.txt'),
+                               dtype=dtype)
+
+
+    tau_grid = np.arange(0.1, 200.0, 0.1)
+    offset_grid = np.arange(1.0, 200.0)
+
+    error_best_flare = None
+    error_best_active = None
+    for tau in tau_grid:
+        for offset in offset_grid:
+            active_model = 1.0-np.exp(-1.0*(active_data['z']-offset)/tau)
+            active_error = np.power(active_model-active_data['frac'],2).sum()
+            if error_best_active is None or active_error<error_best_active:
+                error_best_active = active_error
+                tau_active = tau
+                offset_active = offset
+
+            flare_model = 1.0-np.exp(-1.0*(flare_data['z']-offset)/tau)
+            flare_error = np.power(flare_model-flare_data['frac'],2).sum()
+            if error_best_flare is None or flare_error<error_best_flare:
+                error_best_flare = flare_error
+                tau_flare = tau
+                offset_flare = offset
+
+
+    print 'tau_active: %.9g; %.2e' % (tau_active, error_best_active)
+    print 'tau_flare: %.9g; %.2e' % (tau_flare, error_best_flare)
+    print 'tau_flare/tau_active: %.9g' % (tau_flare/tau_active)
+    print 'offset_active: %.9g' % offset_active
+    print 'offset_flare: %.9g' % offset_flare
+    return tau_flare/tau_active, tau_flare, offset_flare, tau_active, offset_active
+
+def find_fraction_flare_active(star_type, z):
+    """
+    Find the fraction of a spectral type that is flaring active
+    by finding a model for spectral activity based on the data
+    in West et al. 2008 (AJ 135, 785) and scaling the scale
+    height of activity by a 'fudge factor' determined by comparing
+    the cumulative distributions of spectrally and flaring active
+    stars in Figure 12 of Hilton et al 2010 (AJ 140, 1402)
+
+    Parameters
+    ----------
+    star_type is a string indicating the star's spectral type (M0-M8)
+
+    z is the star's distance from the Galactic Plane in parsecs
+
+    Returns
+    -------
+    The fraction of that spectral type at that Galactic Plane distance
+    that are active
+    """
+    if not hasattr(find_fraction_flare_active, '_spec_model_dict'):
+        find_fraction_flare_active._spec_model_dict = _build_activity_model()
+        params = _find_fudge_factor()
+        find_fraction_flare_active._fudge_factor = params[0]
+
+    model_dict = find_fraction_flare_active._spec_model_dict
+    aa = model_dict[star_type]['a']
+    bb = model_dict[star_type]['b']
+    tau = model_dict[star_type]['tau']
+    return aa*np.exp(-1.0*z*tau*find_fraction_flare_active._fudge_factor) + bb
+
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()

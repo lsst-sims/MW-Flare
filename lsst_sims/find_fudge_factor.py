@@ -38,6 +38,8 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np
 
+from fit_activity_level import _find_fudge_factor
+
 
 if __name__ == "__main__":
 
@@ -54,34 +56,9 @@ if __name__ == "__main__":
                                             'flare_rate_Hilton_et_al_2010.txt'),
                                dtype=dtype)
 
-
-    tau_grid = np.arange(0.1, 200.0, 0.1)
-    offset_grid = np.arange(1.0, 200.0)
-
-    error_best_flare = None
-    error_best_active = None
-    for tau in tau_grid:
-        for offset in offset_grid:
-            active_model = 1.0-np.exp(-1.0*(active_data['z']-offset)/tau)
-            active_error = np.power(active_model-active_data['frac'],2).sum()
-            if error_best_active is None or active_error<error_best_active:
-                error_best_active = active_error
-                tau_active = tau
-                offset_active = offset
-
-            flare_model = 1.0-np.exp(-1.0*(flare_data['z']-offset)/tau)
-            flare_error = np.power(flare_model-flare_data['frac'],2).sum()
-            if error_best_flare is None or flare_error<error_best_flare:
-                error_best_flare = flare_error
-                tau_flare = tau
-                offset_flare = offset
-
-
-    print 'tau_active: %.9g; %.2e' % (tau_active, error_best_active)
-    print 'tau_flare: %.9g; %.2e' % (tau_flare, error_best_flare)
-    print 'tau_flare/tau_active: %.9g' % (tau_flare/tau_active)
-    print 'offset_active: %.9g' % offset_active
-    print 'offset_flare: %.9g' % offset_flare
+    (fudge_factor,
+     tau_flare, offset_flare,
+     tau_active, offset_active) = _find_fudge_factor()
 
     with open(os.path.join('type_fits','fudge_factor.txt'), 'w') as out_file:
         out_file.write('# factor to multiply tau by to get "flaring active" stars\n')
