@@ -8,6 +8,8 @@ import argparse
 import numpy as np
 import os
 
+__all__ = ["find_fraction_spec_active"]
+
 def fit_to_exp_decay(xx_data, yy_data, sigma_data):
 
     tau_grid = np.arange(xx_data.min(), xx_data.max(), 0.1)
