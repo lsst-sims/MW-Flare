@@ -8,7 +8,7 @@ import argparse
 import numpy as np
 import os
 
-def fit_to_exp_decay(xx_data, yy_data, sigma_data, xx_test):
+def fit_to_exp_decay(xx_data, yy_data, sigma_data):
 
     tau_grid = np.arange(xx_data.min(), xx_data.max(), 0.1)
     tau_best = None
@@ -34,7 +34,58 @@ def fit_to_exp_decay(xx_data, yy_data, sigma_data, xx_test):
             bb_best = bb
             tau_best = tau
 
-    return aa_best*np.exp(-1.0*xx_test/tau_best) + bb_best, aa_best, tau_best, bb_best
+    return aa_best, tau_best, bb_best
+
+
+def find_fraction_spec_active(star_type, z):
+    """
+    Find the fraction of a spectral type that is active (in the spectroscopic
+    sense of  as a function of West et al. 2008 (AJ 135, 785), at a given
+    distance from the Galactic Plane
+
+    Parameters
+    ----------
+    star_type is a string indicating the star's spectral type (M0-M8)
+
+    z is the star's distance from the Galactic Plane in parsecs
+
+    Returns
+    -------
+    The fraction of that spectral type at that Galactic Plane distance
+    that are activve
+    """
+
+    if not hasattr(find_fraction_spec_active, '_model_dict'):
+        model_dict = {}
+        data_dir = 'data/activity_by_type'
+
+        dtype = np.dtype([('z', float), ('frac', float),
+                          ('min', float), ('max', float)])
+
+        for i_type in range(9):
+            model_type = 'M%d' % i_type
+            data_name = os.path.join(data_dir, '%s.txt' % model_type)
+            data = np.genfromtxt(data_name, dtype=dtype)
+
+            sigma_arr = []
+            for nn, xx in zip(data['min'], data['max']):
+                if nn>1.0e-20 and xx<0.999:
+                    sigma = 0.5*(xx-nn)
+                else:
+                    sigma = xx-nn
+                sigma_arr.append(sigma)
+            aa, tau, bb = fit_to_exp_decay(data['z'], data['frac'], np.array(sigma_arr))
+            model_dict[model_type] = {}
+            model_dict[model_type]['a'] = aa
+            model_dict[model_type]['tau'] = tau
+            model_dict[model_type]['b'] = bb
+
+            find_fraction_spec_active._model_dict = model_dict
+
+    aa = find_fraction_spec_active._model_dict[star_type]['a']
+    tau = find_fraction_spec_active._model_dict[star_type]['tau']
+    bb = find_fraction_spec_active._model_dict[star_type]['b']
+    return aa*np.exp(-1.0*z/tau) + bb
 
 
 if __name__ == "__main__":
@@ -55,24 +106,14 @@ if __name__ == "__main__":
     plot_dir = 'plots'
     plt.figsize = (30, 30)
 
+    xx_test = np.arange(0.0, 1000.0, 1.0)
+
     for i_fig, spec_type in enumerate(type_list):
+
         data_name = os.path.join(data_dir, '%s.txt' % spec_type)
         data = np.genfromtxt(data_name, dtype=dtype)
 
-        nugget = []
-        for nn, xx in zip(data['min'], data['max']):
-            if nn>1.0e-20 and xx<0.999:
-                sigma = 0.5*(xx-nn)
-            else:
-                sigma = xx-nn
-            nugget.append(np.power(sigma,2))
-
-        xx_test = np.arange(0.0, 1000.0, 1.0)
-        yy_test, aa, tau, bb = fit_to_exp_decay(data['z'], data['frac'], nugget, xx_test)
-
-        with open(os.path.join(args.outdir, '%s_fit.txt' % spec_type), 'w') as output_file:
-            output_file.write('# a, tau, b (frac = A*exp(-z/tau) + b)\n')
-            output_file.write('%.9g %.9g %.9g\n' % (aa, tau, bb))
+        yy_test = find_fraction_spec_active(spec_type, xx_test)
 
         plt.subplot(3,3,i_fig+1)
         plt.errorbar(data['z'], data['frac'],
