@@ -78,9 +78,9 @@ def prob_of_type(r_i, i_z):
     If more than one star was passed in, then each row of the numpy array
     will corresponds to a different stellar type, i.e.
 
-    output[1][2]
+    output[1][3]
 
-    will be the probability that star 2 is of type M1
+    will be the probability that star 3 is of type M1
     """
 
     if not hasattr(prob_of_type, 'r_i'):
