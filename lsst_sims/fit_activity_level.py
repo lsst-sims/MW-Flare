@@ -180,7 +180,10 @@ def find_fraction_flare_active(star_type, z):
         params = _find_fudge_factor()
         find_fraction_flare_active._fudge_factor = params[0]
 
-    i_star_type = int(star_type[1])
+    if isinstance(star_type, str):
+        i_star_type = int(star_type[1])
+    else:
+        i_star_type = np.array([int(st[1]) for st in star_type])
 
     aa = find_fraction_flare_active._spec_model_aa[i_star_type]
     bb = find_fraction_flare_active._spec_model_bb[i_star_type]
