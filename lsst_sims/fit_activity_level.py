@@ -48,12 +48,14 @@ def _build_activity_model():
 
     fraction active = A*exp(-z/tau) + B
     """
-    model_dict = {}
     data_dir = 'data/activity_by_type'
 
     dtype = np.dtype([('z', float), ('frac', float),
                       ('min', float), ('max', float)])
 
+    model_aa = []
+    model_bb = []
+    model_tau = []
     for i_type in range(9):
         model_type = 'M%d' % i_type
         data_name = os.path.join(data_dir, '%s.txt' % model_type)
@@ -67,12 +69,11 @@ def _build_activity_model():
                 sigma = xx-nn
             sigma_arr.append(sigma)
         aa, tau, bb = fit_to_exp_decay(data['z'], data['frac'], np.array(sigma_arr))
-        model_dict[model_type] = {}
-        model_dict[model_type]['a'] = aa
-        model_dict[model_type]['tau'] = tau
-        model_dict[model_type]['b'] = bb
+        model_aa.append(aa)
+        model_bb.append(bb)
+        model_tau.append(tau)
 
-    return model_dict
+    return np.array(model_aa), np.array(model_bb), np.array(model_tau)
 
 def find_fraction_spec_active(star_type, z):
     """
@@ -92,12 +93,16 @@ def find_fraction_spec_active(star_type, z):
     that are active
     """
 
-    if not hasattr(find_fraction_spec_active, '_model_dict'):
-        find_fraction_spec_active._model_dict = _build_activity_model()
+    if not hasattr(find_fraction_spec_active, '_model_aa'):
+        (find_fraction_spec_active._model_aa,
+         find_fraction_spec_active._model_bb,
+         find_fraction_spec_active._model_tau) = _build_activity_model()
 
-    aa = find_fraction_spec_active._model_dict[star_type]['a']
-    tau = find_fraction_spec_active._model_dict[star_type]['tau']
-    bb = find_fraction_spec_active._model_dict[star_type]['b']
+    i_star_type = int(star_type[1])
+
+    aa = find_fraction_spec_active._model_aa[i_star_type]
+    tau = find_fraction_spec_active._model_tau[i_star_type]
+    bb = find_fraction_spec_active._model_bb[i_star_type]
     return aa*np.exp(-1.0*z/tau) + bb
 
 
@@ -168,15 +173,18 @@ def find_fraction_flare_active(star_type, z):
     The fraction of that spectral type at that Galactic Plane distance
     that are active
     """
-    if not hasattr(find_fraction_flare_active, '_spec_model_dict'):
-        find_fraction_flare_active._spec_model_dict = _build_activity_model()
+    if not hasattr(find_fraction_flare_active, '_spec_model_aa'):
+        (find_fraction_flare_active._spec_model_aa,
+         find_fraction_flare_active._spec_model_bb,
+         find_fraction_flare_active._spec_model_tau) = _build_activity_model()
         params = _find_fudge_factor()
         find_fraction_flare_active._fudge_factor = params[0]
 
-    model_dict = find_fraction_flare_active._spec_model_dict
-    aa = model_dict[star_type]['a']
-    bb = model_dict[star_type]['b']
-    tau = model_dict[star_type]['tau']
+    i_star_type = int(star_type[1])
+
+    aa = find_fraction_flare_active._spec_model_aa[i_star_type]
+    bb = find_fraction_flare_active._spec_model_bb[i_star_type]
+    tau = find_fraction_flare_active._spec_model_tau[i_star_type]
     return aa*np.exp(-1.0*z*tau*find_fraction_flare_active._fudge_factor) + bb
 
 
