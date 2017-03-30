@@ -103,7 +103,7 @@ def find_fraction_spec_active(star_type, z):
     aa = find_fraction_spec_active._model_aa[i_star_type]
     tau = find_fraction_spec_active._model_tau[i_star_type]
     bb = find_fraction_spec_active._model_bb[i_star_type]
-    return aa*np.exp(-1.0*z/tau) + bb
+    return aa*np.exp(-1.0*np.abs(z)/tau) + bb
 
 
 def _find_fudge_factor():
@@ -188,7 +188,7 @@ def find_fraction_flare_active(star_type, z):
     aa = find_fraction_flare_active._spec_model_aa[i_star_type]
     bb = find_fraction_flare_active._spec_model_bb[i_star_type]
     tau = find_fraction_flare_active._spec_model_tau[i_star_type]
-    return aa*np.exp(-1.0*z*tau*find_fraction_flare_active._fudge_factor) + bb
+    return aa*np.exp(-1.0*np.abs(z)*tau*find_fraction_flare_active._fudge_factor) + bb
 
 
 
