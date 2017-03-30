@@ -7,7 +7,8 @@ from lsst.utils import getPackageDir
 
 __all__ = ["xyz_from_lon_lat_px", "prob_of_type", "draw_energies",
            "duration_from_energy", "fwhm_from_duration",
-           "amplitude_from_fwhm_energy", "lsst_flare_fluxes_from_u"]
+           "amplitude_from_fwhm_energy", "lsst_flare_fluxes_from_u",
+           "light_curve_from_class"]
 
 def xyz_from_lon_lat_px(lon, lat, px):
     """
