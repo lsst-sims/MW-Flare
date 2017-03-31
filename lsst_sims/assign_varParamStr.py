@@ -36,7 +36,7 @@ if args.seed is None:
 
 import os
 
-if not os.path.exists(args.out_dir):
+if not os.path.isdir(args.out_dir) and not os.path.exists(args.out_dir):
     os.mkdir(args.out_dir)
 if not os.path.isdir(args.out_dir):
     raise RuntimeError("%s is not a directory" % args.out_dir)
