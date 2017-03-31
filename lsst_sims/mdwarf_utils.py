@@ -634,6 +634,7 @@ def activity_type_from_color_z(r_i, i_z, z, rng):
 
         activity_type_from_color_z.type_dict = type_dict
 
+    type_dict = activity_type_from_color_z.type_dict
     prob = prob_of_type(r_i, i_z)
     type_indices = np.argmax(prob, axis=0)
     type_indices = np.where(type_indices<9, type_indices, 8)
