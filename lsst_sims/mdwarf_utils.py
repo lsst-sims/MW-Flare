@@ -4,6 +4,7 @@ import os
 from lsst.sims.utils import radiansFromArcsec
 from lsst.sims.photUtils import Bandpass, BandpassDict, Sed
 from lsst.utils import getPackageDir
+from fit_activity_level import find_fraction_flare_active
 
 __all__ = ["xyz_from_lon_lat_px", "prob_of_type", "draw_energies",
            "duration_from_energy", "fwhm_from_duration",
@@ -597,3 +598,55 @@ def light_curve_from_class(stellar_class, years, rng):
             u_flux, g_flux, r_flux,
             i_flux, z_flux, y_flux,
             t_peak_arr)
+
+
+def activity_type_from_color_z(r_i, i_z, z, rng):
+    """
+    Find stars' activity types ('early_active', 'early_inactive',
+    'mid_active', 'mid_inactive', 'late_active') from the stars'
+    colors and distance from the Galactic Plane
+
+    Parameters
+    ----------
+    r_i the stars' SDSS r-i colors
+
+    i_z the stars' SDSS i-z colors
+
+    z the stars' distance from the Galactic Plane in parsecs
+
+    rng is an instantiation of numpy.random.RandomState.
+    This will be used to do the random number draws which must
+    be compared to the flaring activity probability.
+
+    Returns
+    -------
+    a numpy array containing the stars' activity types
+    """
+
+    if not hasattr(activity_type_from_color_z, 'type_dict'):
+        type_dict = {}
+        for ii in range(3):
+            type_dict['M%d' % ii] = 'early'
+        for ii in range(3, 6):
+            type_dict['M%d' % ii] = 'mid'
+        for ii in range(6,9):
+            type_dict['M%d' % ii] = 'late'
+
+        activity_type_from_color_z.type_dict = type_dict
+
+    prob = prob_of_type(r_i, i_z)
+    type_indices = np.argmax(prob, axis=0)
+    type_indices = np.where(type_indices<9, type_indices, 8)
+    type_names = np.array(['M%d' % ii if ii<9 else 'M8'
+                           for ii in type_indices])
+
+    print 'names ',len(type_names)
+    print 'z ',len(z)
+    print 'prob ',prob.shape
+    frac_active = find_fraction_flare_active(type_names, z)
+
+    draw = rng.random_sample(len(r_i))
+    ans = np.array(['%s_active' % type_dict[name] if dd<ff
+                    else '%s_inactive' % type_dict[name]
+                    for name, dd, ff in zip(type_names, draw, frac_active)])
+    return ans
