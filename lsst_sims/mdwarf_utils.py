@@ -63,7 +63,7 @@ def xyz_from_lon_lat_px(lon, lat, px):
 
 def prob_of_type(r_i, i_z):
     """
-    Find the relative probabilities that a star is of spectral types
+    Find the relative ln(probabilities) that a star is of spectral types
     M0-M9 as detailed in the caption for Table 2 of West et al 2011
     (AJ 141, 97)
 
@@ -75,14 +75,14 @@ def prob_of_type(r_i, i_z):
 
     Returns
     -------
-    A numpy array containing the probability density value of the star's color
-    in the 2-D Gaussian PDF associated with each spectral subtype (M0-M9).
+    A numpy array containing the ln(probability) density value of the star's
+    color in the 2-D Gaussian PDF associated with each spectral subtype (M0-M9).
     If more than one star was passed in, then each row of the numpy array
     will corresponds to a different stellar type, i.e.
 
     output[1][3]
 
-    will be the probability that star 3 is of type M1
+    will be the ln(probability) that star 3 is of type M1
     """
 
     if not hasattr(prob_of_type, 'r_i'):
@@ -96,7 +96,7 @@ def prob_of_type(r_i, i_z):
         prob_of_type.r_i = []
         prob_of_type.i_z = []
         prob_of_type.covar_inv = []
-        prob_of_type.sqrt_det = []
+        prob_of_type.ln_sqrt_det = []
         for ix, row in enumerate(input_data):
             assert row[0] == 'M%d' % ix
             prob_of_type.r_i.append(row[1])
@@ -106,8 +106,7 @@ def prob_of_type(r_i, i_z):
             covar_inv = np.linalg.inv(covar)
             prob_of_type.covar_inv.append(covar_inv)
             sqrt_det = np.sqrt(np.linalg.det(covar))
-            prob_of_type.sqrt_det.append(sqrt_det)
-
+            prob_of_type.ln_sqrt_det.append(np.log(sqrt_det))
 
     output = []
     for ix in range(len(prob_of_type.r_i)):
@@ -122,8 +121,7 @@ def prob_of_type(r_i, i_z):
         else:
             arg = np.dot(x_minus_mu, np.dot(prob_of_type.covar_inv[ix], x_minus_mu))
 
-        exp_term = np.exp(-0.5*arg)
-        output.append(exp_term/(2.0*np.pi*prob_of_type.sqrt_det[ix]))
+        output.append(-0.5*arg-prob_of_type.ln_sqrt_det[ix]-np.log(2.0*np.pi))
 
     return np.array(output)
 
