@@ -59,9 +59,9 @@ else:
 db = DBObject(database=database, host=host, port=port, driver=driver)
 
 if args.limit is None:
-    query = 'SELECT'
+    query = 'SELECT '
 else:
-    query = 'SELECT TOP %d' % args.limit
+    query = 'SELECT TOP %d ' % args.limit
 
 query += 'simobjid, gal_l, gal_b, parallax, sdssr, sdssi, sdssz '
 query += 'FROM %s ' % args.table
