@@ -439,21 +439,7 @@ def lsst_flare_fluxes_from_u(u_flux):
         # how the fluxes scale relatively between the 7 bands (Johnson U
         # and the 6 LSST bands)
 
-        bb_int_flambda = np.interp(johnson_u.wavelen, bb_wavelen, bb_flambda)
-
-        # calculate the flux (with an arbitrary normalization) of the 9000K
-        # black body in the Johnson_U band and the lsst bands
-
-        # integrate the flux of the black body over the Johnson U band
-        bb_johnson_u = (0.5*(johnson_u.wavelen[1]-johnson_u.wavelen[0])
-                        *(johnson_u.sb[1:]*bb_int_flambda[1:] +
-                          johnson_u.sb[:-1]*bb_int_flambda[:-1]).sum())
-
-        lsst_flare_fluxes_from_u.johnson_u_raw_flux = bb_johnson_u
-
-        lsst_flare_fluxes_from_u.lsst_raw_flux_dict = {}
-        lsst_bands = BandpassDict.loadTotalBandpassesFromFiles()
-        print 'raw flux in johnnson U = %e ' % bb_johnson_u
+        bb_sed = Sed(wavelen=bb_wavelen, flambda=bb_flambda)
 
         # because we are going to want to convert our light curve
         # fluxes into magnitudes using Sed.magFromFlux(), we
@@ -461,8 +447,11 @@ def lsst_flare_fluxes_from_u(u_flux):
         # Sed.calcFlux() (which calculates the flux in counts
         # through the normalized bandpass; see eqn 2.1 of
         # the LSST Science Book)
-        bb_sed = Sed(wavelen=bb_wavelen, flambda=bb_flambda)
+        lsst_flare_fluxes_from_u.johnson_u_raw_flux = bb_sed.calcFlux(johnson_u)
+
+        lsst_bands = BandpassDict.loadTotalBandpassesFromFiles()
         norm_raw = None
+        lsst_flare_fluxes_from_u.lsst_raw_flux_dict = {}
         for band_name in ('u', 'g', 'r', 'i', 'z', 'y'):
             bp = lsst_bands[band_name]
 
@@ -472,7 +461,7 @@ def lsst_flare_fluxes_from_u(u_flux):
             if norm_raw is None:
                 norm_raw = flux
             print 'raw flux in %s = %e; %e' % (band_name,flux,flux/norm_raw)
-        print 'sed johnson flux %e' % bb_sed.calcFlux(johnson_u)
+        print 'sed johnson flux %e' % lsst_flare_fluxes_from_u.johnson_u_raw_flux
 
     factor = u_flux/lsst_flare_fluxes_from_u.johnson_u_raw_flux
 
