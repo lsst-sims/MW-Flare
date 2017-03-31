@@ -100,8 +100,12 @@ for data_chunk in chunk_iter:
 
     lc_indices = rng.randint(0, args.n_curves, len(data_chunk))
     offset = rng.random_sample(len(data_chunk))*3652.5
-    varParamStr_list = [json.dumps({'lc':'%s_%d.txt' % (aa, ii), 't0': oo})
+    varParamStr_list = [json.dumps({'pars':{'lc':'%s_%d.txt' % (aa, ii), 't0': oo},
+                                    'varMethodName': 'applyMLTflaring'})
                         for aa,ii,oo in zip(activity_class, lc_indices,offset)]
+
+    len_str = [len(vv) for vv in varParamStr_list]
+    print('max len ',max(len_str))
 
     if has_written:
         status = 'a'
@@ -112,6 +116,6 @@ for data_chunk in chunk_iter:
     with open(out_name, status) as out_file:
         for ii, vv, mm, zz in zip(data_chunk['id'], varParamStr_list,
                                   spectral_type, xyz[2]):
-            out_file.write('%d, %s, %s, %e\n' % (ii, vv, mm, zz))
+            out_file.write("%d; %s; %s; %e\n" % (ii, vv, mm, zz))
 
 print('that took %e seconds' % (time.time()-t_start))
