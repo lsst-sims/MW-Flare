@@ -93,9 +93,10 @@ for data_chunk in chunk_iter:
                               np.degrees(data_chunk['lat']),
                               data_chunk['parallax']*0.001)
 
-    activity_class = activity_type_from_color_z(data_chunk['sdssr']-data_chunk['sdssi'],
-                                                data_chunk['sdssi']-data_chunk['sdssz'],
-                                                xyz[2], rng)
+    (activity_class,
+     spectral_type) = activity_type_from_color_z(data_chunk['sdssr']-data_chunk['sdssi'],
+                                                 data_chunk['sdssi']-data_chunk['sdssz'],
+                                                 xyz[2], rng)
 
     lc_indices = rng.randint(0, args.n_curves, len(data_chunk))
     offset = rng.random_sample(len(data_chunk))*3652.5
@@ -109,7 +110,8 @@ for data_chunk in chunk_iter:
         has_written = True
 
     with open(out_name, status) as out_file:
-        for ii, vv in zip(data_chunk['id'], varParamStr_list):
-            out_file.write('%d, %s\n' % (ii, vv))
+        for ii, vv, mm, zz in zip(data_chunk['id'], varParamStr_list,
+                                  spectral_type, xyz[2]):
+            out_file.write('%d, %s, %s, %e\n' % (ii, vv, mm, zz))
 
 print('that took %e seconds' % (time.time()-t_start))

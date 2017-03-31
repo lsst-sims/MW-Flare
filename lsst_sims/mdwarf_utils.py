@@ -619,6 +619,8 @@ def activity_type_from_color_z(r_i, i_z, z, rng):
     Returns
     -------
     a numpy array containing the stars' activity types
+
+    a numpy array of spectral types
     """
 
     if not hasattr(activity_type_from_color_z, 'type_dict'):
@@ -645,4 +647,4 @@ def activity_type_from_color_z(r_i, i_z, z, rng):
     ans = np.array(['%s_active' % type_dict[name] if dd<ff
                     else '%s_inactive' % type_dict[name]
                     for name, dd, ff in zip(type_names, draw, frac_active)])
-    return ans
+    return ans, type_names
