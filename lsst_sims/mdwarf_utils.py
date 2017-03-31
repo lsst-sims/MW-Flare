@@ -641,9 +641,6 @@ def activity_type_from_color_z(r_i, i_z, z, rng):
     type_names = np.array(['M%d' % ii if ii<9 else 'M8'
                            for ii in type_indices])
 
-    print 'names ',len(type_names)
-    print 'z ',len(z)
-    print 'prob ',prob.shape
     frac_active = find_fraction_flare_active(type_names, z)
 
     draw = rng.random_sample(len(r_i))
