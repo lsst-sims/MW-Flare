@@ -552,6 +552,9 @@ def light_curve_from_class(stellar_class, years, rng):
     is radiating at its quiescent luminosity; 10^32 ergs/s means
     that 10^32 ergs/s need to be added on top of the star's
     quiescent luminosity)
+
+    A numpy array containing the time (in days) of the flare
+    peaks.
     """
 
     (t_peak_arr,
@@ -603,4 +606,5 @@ def light_curve_from_class(stellar_class, years, rng):
 
     return (time_sec_arr/86400.0,
             u_flux, g_flux, r_flux,
-            i_flux, z_flux, y_flux)
+            i_flux, z_flux, y_flux,
+            t_peak_arr)
