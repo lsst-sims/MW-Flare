@@ -16,8 +16,8 @@ cache = {}
 for star_class in ('early_active', 'early_inactive',
                    'mid_active', 'mid_inactive', 'late_active'):
 
-    for ix in range(3):
-        tt, uu, gg, rr, ii, zz, yy, t_peak = light_curve_from_class(star_class, 5.0, rng)
+    for ix in range(4):
+        tt, uu, gg, rr, ii, zz, yy, t_peak = light_curve_from_class(star_class, 10.0, rng)
 
         tag = '%s_%d' % (star_class, ix)
         cache['%s_time' % tag] = tt
