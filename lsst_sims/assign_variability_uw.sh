@@ -26,6 +26,12 @@ nohup nice python assign_varParamStr.py --table stars_mlt_part_1180 \
 
 sleep 5
 
+nohup nice python assign_varParamStr.py --table stars_mlt_part_1200 \
+--out_dir ${output_dir} \
+--chunk_size 100000 --seed 5542 >& stdout_1200_assign.txt &
+
+sleep 5
+
 nohup nice python assign_varParamStr.py --table stars_mlt_part_1220 \
 --out_dir ${output_dir} \
 --chunk_size 100000 --seed 6782 >& stdout_1220_assign.txt &
