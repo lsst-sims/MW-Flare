@@ -29,5 +29,5 @@ for star_class in ('early_active', 'early_inactive',
         print(star_class,ix,(time.time()-t_start)/60.0)
 
 
-with open('output/mdwarf_flare_light_curves.npz', 'wb') as file_handle:
+with open('/astro/store/pogo4/danielsf/mlt_flares/mdwarf_flare_light_curves.npz', 'wb') as file_handle:
     np.savez(file_handle, **cache)
