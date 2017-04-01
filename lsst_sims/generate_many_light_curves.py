@@ -9,8 +9,6 @@ t_start = time.time()
 
 rng = np.random.RandomState(991)
 
-tt_0 = None
-
 cache = {}
 
 for star_class in ('early_active', 'early_inactive',
