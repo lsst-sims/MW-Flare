@@ -1,0 +1,17 @@
+# This is a by-eye reconstruction of the duration versus energy panel
+# from Hawley et al. 2014 (ApJ 797, 121) Figure 10.
+#
+# At chosen values of duration, I will read off the log(E_kepler)
+# as well as the minimum and maximum bounds of the scatter plot
+# in duration.  This is all going to be very approximate, as the
+# duration axis is on a logarithmic scale.  This is meant to be
+# a placeholder until such time as I can get the actual data
+# underlying the figure.
+#
+# log(E_kepler) duration(minutes) duration_min duration_max
+29.8 3 0.1 9
+30.4 10 3 18
+31.0 20 12 35
+31.6 40 20 65
+32.1 70 45 90
+32.6 100 70 120
