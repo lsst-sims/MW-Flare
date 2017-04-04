@@ -49,8 +49,28 @@ The fitting done by `find_fraction_spec_active` actually returns the fraction
 of each spectral type that is "spectroscopically active."
 According to Jim Davenport,
 there is a difference between "spectroscopically active" and "flaring active".
-You can see a direct quotation from his correspondence at the top of
-`find_fudge_factor.py`.  Jim recommended scaling the `tau` found for the
+Quoting a private correspondence from him:
+
+    If I remember correctly what I said, it's that spectroscopic
+    activity doesn't == flaring activity. So stars could be "magnetically active"
+    as determined by Halpha emission in their spectra, but not "flare active"
+    (not as well defined)
+
+    The evidence of this is Hilton et al (2010),
+    http://adsabs.harvard.edu/abs/2010AJ....140.1402H (Fig 12) where they
+    find the scale height of flare stars is lower than for "active" stars.
+
+    Of course as the specialist I have to say "this is probably more
+    complicated"...
+
+    So my off-the-cuff advice:
+    do exactly as you propose, use West et al. to make "active vs inactive"
+    as a function of height, assign flares, etc. BUT, adopt some correction
+    (or ignorance) scaling factor that makes the scale height lower. I don't
+    know what that # should be, but you could extract something plausible
+    out of Fig 12 from Hilton2010 (e.g. 80pc instead of 120pc)
+
+Jim recommended scaling the `tau` found for the
 "spectroscopically active" population by some fudge factor to get the fraction
 of stars that are "flaring active".  The method `_find_fundge_factor` in
 `fit_activity_level.py` finds this factor by
