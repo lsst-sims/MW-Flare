@@ -67,3 +67,38 @@ colors and its distance from the Galactic Plane and, using a random number
 generator from numpy as well as all of the infrastructure described in above,
 assigns the star to one of the variability classes mentioned at the top of this
 document (early active, early inactive, mid active, mid inactive, late active).
+
+# Generating light curves
+
+We have elected to pre-generate four ten-year light curves for each of the
+flaring activity classes ('early active', 'early inactive', 'mid active', etc.)
+in our simulation.  The method `light_curve_from_class` in `mdwarf_utils.py`
+takes an activity class, a number of years, and a numpy random number
+generator and returns a light curve in all six LSST bands simulated over
+the specified number of years.  Below, we describe the steps taken by
+`light_curve_from_class`.
+
+To determine the number and energy of flares experienced by a star, we use the
+cumulative flare distributions as a function of energy presented in Table 4.3 of
+Eric Hilton's PhD dissertation (http://search.proquest.com/docview/1069196057).
+The method `draw_energies` in `mdwarf_utils.py` takes a flaring activity class,
+a duration in days, and a numpy random number generator, and randomly draws
+flares according to distributions specified by Hilton.  This method will return
+the peak times of the flares in days (randomly drawn from a uniform distribution
+spread out over the specified duration) and the total energy of the flares in
+ergs in the Johnson U band (randomly drawn from the Hilton distributions with a
+maximum flare energy set at 10^34 ergs).  The script `validate_energy.py`
+validates this process by drawing 10 years worth of flares and plotting the
+simulated cumulative flare rate against the actual distributions from Hilton's
+PhD.
+
+Once we have a list of flares, their time of peak, and their total energies, we
+need to model their actual rise and fall.  We do this using the profile
+presented in Davenport et al. 2014 (ApJ 797, 122) equations (1) and (4).  This
+profiles requires as input the time full width half maximum of the flare (i.e.
+the width of the profile in time between rising to one half of its maximum flux
+and falling back to one half of its maximum flux) and an amplitude (i.e. the
+maxmimum flux of the flare).  We model the relationship between energy, FWHM,
+and amplitude using observations of the well-known flaring star GJ 1243
+presented in Hawley et al. 2014 (ApJ 797, 121) and provided by Jim Davenport at
+(http://github.com/jradavenport/GJ1243-Flares).
