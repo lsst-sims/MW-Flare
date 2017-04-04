@@ -1,5 +1,14 @@
 #Modeling M-Dwarf flare activity
 
+The general strategy we have adopted for simulating M dwarf flaring is to
+generate a set of ten-year flaring light curves of different levels of
+flaring activity, realistically assign a light curve and a phase offset
+to each cool dwarf star in the CatSim simulation, and interpolate the
+light curve (incorporating the phase offset) to find the magnitude of
+the star at the time of any given simulated observation.
+
+#Classifying levels of flaring activity
+
 In order to correctly assign light curves to the M dwarf stars in our the CatSim
 GalFast simulation, we need to divide the stars into five categories:
 
