@@ -124,3 +124,14 @@ energies and durations reported in the Hawley et al. 2014 data and running them
 through `amplitude_from_fwhm_energy` and plotting the resulting distribution of
 amplitudes versus the actual amplitudes reported in the data.  These plots will
 be found in `plots/amplitude_plot.png` after running `validate_amplitude.py`.
+
+The entire process as described above is validated by `validate_end_to_end.py`.
+This script simulates flares on a `mid active` star (like GJ 1243) covering a
+duration of time equal to the total duration of time covered by the Hawley et
+al. 2014 data.  These simulated flares are then run through
+`duration_from_energy` and `amplitude_from_duration_energy`.  The resulting
+distributions of amplitude, energy, and duration are plotted against the actual
+datain `plots/end_to_end_1D.png` and `plots/end_to_end_2D.png`.
+
+At this point, `light_curve_from_class` has all of the information it needs to
+create a flaring light curve from the star in the Johnson u band.
