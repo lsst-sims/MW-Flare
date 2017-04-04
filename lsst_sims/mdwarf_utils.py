@@ -604,6 +604,10 @@ def activity_type_from_color_z(r_i, i_z, z, rng):
     'mid_active', 'mid_inactive', 'late_active') from the stars'
     colors and distance from the Galactic Plane
 
+    Early spectroscopic classes are [M0-M2]
+    Mid spectroscopic classes are [M3-M5]
+    Late spectroscopic classes are anything cooler than M5
+
     Parameters
     ----------
     r_i the stars' SDSS r-i colors
