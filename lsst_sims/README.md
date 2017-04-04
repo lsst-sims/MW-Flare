@@ -90,7 +90,8 @@ ergs in the Johnson U band (randomly drawn from the Hilton distributions with a
 maximum flare energy set at 10^34 ergs).  The script `validate_energy.py`
 validates this process by drawing 10 years worth of flares and plotting the
 simulated cumulative flare rate against the actual distributions from Hilton's
-PhD.
+PhD.  This plot will be found in `plots/energy_dist_validation.png` after
+running `validate_energy.py`.
 
 Once we have a list of flares, their time of peak, and their total energies, we
 need to model their actual rise and fall.  We do this using the profile
