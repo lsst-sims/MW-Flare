@@ -102,3 +102,13 @@ maxmimum flux of the flare).  We model the relationship between energy, FWHM,
 and amplitude using observations of the well-known flaring star GJ 1243
 presented in Hawley et al. 2014 (ApJ 797, 121) and provided by Jim Davenport at
 (http://github.com/jradavenport/GJ1243-Flares).
+
+To find the FWHM time duration of the flares, we bin the duration versus energy
+plot from Hawley et al. 2014 (middle panel of Figure 10) into energy bins of 1.0
+dex, and fit the duration distribution within each energy bin as a Gaussian.  To
+find the durations of our simulated flares, we draw randomly from these
+Gaussians, based on the energy of the flare.  This is done in the method
+`duration_from_energy` in `mdwarf_utils.py`.  The script `validate_duration.py`
+validates this process by taking the actual energies of the Hawley et al. 2014
+flares, feeding them through `duration_from_energy`, and plotting the resulting
+distribution of durations against the actual durations in the data.
