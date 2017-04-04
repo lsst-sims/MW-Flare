@@ -72,12 +72,11 @@ Quoting a private correspondence from him:
 
 Jim recommended scaling the `tau` found for the
 "spectroscopically active" population by some fudge factor to get the fraction
-of stars that are "flaring active".  The method `_find_fundge_factor` in
+of stars that are "flaring active".  The method `_find_fudge_factor` in
 `fit_activity_level.py` finds this factor by
 fitting the "Active Stars" and "Flaring Stars" curves from Figure 12 of Hilton
 et al. 2010 (AJ 140, 1402) to decaying exponentials and taking the ratio of
-their respective `tau` parameters.  This script also produces the plot
-`plots/fit_fudge_factor.png`, which shows the fits to the two curves.
+their respective `tau` parameters.
 The method `find_fraction_flare_active` uses `find_fraction_spec_active` and
 `_find_fudge_factor` to determine the fraction of each spectral type (M0-M8)
 that is flaring active as a function of distance from the Galactic Plane.
