@@ -134,4 +134,17 @@ distributions of amplitude, energy, and duration are plotted against the actual
 datain `plots/end_to_end_1D.png` and `plots/end_to_end_2D.png`.
 
 At this point, `light_curve_from_class` has all of the information it needs to
-create a flaring light curve from the star in the Johnson u band.
+create a flaring light curve from the star in the Johnson U band.  To convert to
+LSST bands, we model all flares as 9000K black bodies.  The method
+`lsst_flare_fluxes_from_u` in `mdwarf_utils.py` finds the scaling factor
+by which we must multiply a fiducial blackbody curve to get its total U band
+flux to equal the U band flux of the flare.  `lsst_flare_fluxes_from_u` then
+applies that same factor to the LSST band fluxes of the fiducial black body
+curve.  This gives us flaring light curve fluxes in all six LSST bands.  Note:
+these light curves represent the total energy output by the star in all
+directions over the sky.  In order to convert to observed fluxes, you must
+multiply by (effective area)/(4*pi*R^2) where R is the distance to the star.
+The script `validate_magnitudes.py` queries one star from fatboy in each flaring
+variability class and outputs the flaring delta magnitudes into the file
+`delta_m_data.txt`.  This data can be compared to Figure 10 of Chang et al. 2015
+(ApJ 814, 35) for validation purposes.
