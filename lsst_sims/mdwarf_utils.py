@@ -366,7 +366,8 @@ def amplitude_from_fwhm_energy(t_fwhm, energy_u):
 
     Returns
     -------
-    The amplitude (in ergs/s; *not* the relative amplitude) of the flare.
+    The amplitude (in ergs/s in the Johnson U band; *not* the
+    relative amplitude) of the flare.
     """
 
     if not hasattr(amplitude_from_fwhm_energy, '_t_rise'):
