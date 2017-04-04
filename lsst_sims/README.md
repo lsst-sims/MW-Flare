@@ -114,3 +114,13 @@ validates this process by taking the actual energies of the Hawley et al. 2014
 flares, feeding them through `duration_from_energy`, and plotting the resulting
 distribution of durations against the actual durations in the data.  These plots
 will be found in `plots/duration_plot.png` after running `validate_duration.py`.
+
+Once we have flare energies and FWHM time durations, the amplitude is fixed. The
+method `amplitude_from_fwhm_energy` in `mdwarf_utils.py` takes a list of FWHM
+time durations and energies in the Johnson U band and returns the amplitude of
+the flare required by the Davenport et al. 2014 profile and the energy.  The
+script `validate_amplitude.py` validates this process by taking the actual
+energies and durations reported in the Hawley et al. 2014 data and running them
+through `amplitude_from_fwhm_energy` and plotting the resulting distribution of
+amplitudes versus the actual amplitudes reported in the data.  These plots will
+be found in `plots/amplitude_plot.png` after running `validate_amplitude.py`.
