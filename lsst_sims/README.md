@@ -81,7 +81,7 @@ The method `find_fraction_flare_active` uses `find_fraction_spec_active` and
 `_find_fudge_factor` to determine the fraction of each spectral type (M0-M8)
 that is flaring active as a function of distance from the Galactic plane.
 
-The method `activity_type_from_color_z` reads in a star (or stars') r-i and i-z
+The method `activity_type_from_color_z` reads in a star's (or stars') r-i and i-z
 colors and its distance from the Galactic plane and, using a random number
 generator from numpy as well as all of the infrastructure described in above,
 assigns the star to one of the variability classes mentioned at the top of this
