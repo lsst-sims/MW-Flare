@@ -282,6 +282,10 @@ def duration_from_energy(energy_u, rng):
         # paragraph before Section 3
         log_eu = log_ekp + np.log10(0.65)
 
+        # all of the bins have standard deviations
+        # between 0.16 and 0.17; rather than fit this
+        # as a linear function and risk it falling off
+        # or rising up to absurd values, we fix it at 0.16
         duration_from_energy._stdev = 0.16
 
         n_data = float(len(log_eu))
