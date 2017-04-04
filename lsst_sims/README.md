@@ -112,4 +112,5 @@ Gaussians, based on the energy of the flare.  This is done in the method
 `duration_from_energy` in `mdwarf_utils.py`.  The script `validate_duration.py`
 validates this process by taking the actual energies of the Hawley et al. 2014
 flares, feeding them through `duration_from_energy`, and plotting the resulting
-distribution of durations against the actual durations in the data.
+distribution of durations against the actual durations in the data.  These plots
+will be found in `plots/duration_plot.png` after running `validate_duration.py`.
