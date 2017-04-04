@@ -1,6 +1,6 @@
 # this script is meant to be run from a machine on UW campus
 
-output_dir=/astro/store/pogo4/danielsf/mlt_flares/
+output_dir=/astro/store/pogo4/danielsf/mlt_flares_htmid/
 
 nohup nice python assign_varParamStr.py --table stars_mlt_part_0870 \
 --out_dir ${output_dir} \

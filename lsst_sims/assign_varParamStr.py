@@ -63,7 +63,7 @@ if args.limit is None:
 else:
     query = 'SELECT TOP %d ' % args.limit
 
-query += 'simobjid, gal_l, gal_b, parallax, sdssr, sdssi, sdssz '
+query += 'htmid, simobjid, gal_l, gal_b, parallax, sdssr, sdssi, sdssz '
 query += 'FROM %s ' % args.table
 
 from mdwarf_utils import activity_type_from_color_z
@@ -77,7 +77,7 @@ t_start = time.time()
 
 rng = np.random.RandomState(args.seed)
 
-dtype = np.dtype([('id', int),
+dtype = np.dtype([('htmid', int), ('id', int),
                   ('lon', float), ('lat', float), ('parallax', float),
                   ('sdssr', float), ('sdssi', float), ('sdssz', float)])
 
@@ -114,8 +114,8 @@ for data_chunk in chunk_iter:
         has_written = True
 
     with open(out_name, status) as out_file:
-        for ii, vv, mm, zz in zip(data_chunk['id'], varParamStr_list,
+        for hh, ii, vv, mm, zz in zip(data_chunk['htmid'], data_chunk['id'], varParamStr_list,
                                   spectral_type, xyz[2]):
-            out_file.write("%d; %s; %s; %e\n" % (ii, vv, mm, zz))
+            out_file.write("%ld; %d; %s; %s; %e\n" % (hh, ii, vv, mm, zz))
 
 print('that took %e seconds' % (time.time()-t_start))
