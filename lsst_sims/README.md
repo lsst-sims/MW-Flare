@@ -83,7 +83,7 @@ that is flaring active as a function of distance from the Galactic plane.
 
 The method `activity_type_from_color_z` reads in a star's (or stars') r-i and i-z
 colors and its distance from the Galactic plane and, using a random number
-generator from numpy as well as all of the infrastructure described in above,
+generator from numpy as well as all of the infrastructure described above,
 assigns the star to one of the variability classes mentioned at the top of this
 document (early active, early inactive, mid active, mid inactive, late active).
 
@@ -115,7 +115,7 @@ running `validate_energy.py`.
 Once we have a list of flares, their time of peak, and their total energies, we
 need to model their actual rise and fall.  We do this using the profile
 presented in Davenport et al. 2014 (ApJ 797, 122) equations (1) and (4).  This
-profiles requires as input the time full width half maximum of the flare (i.e.
+profiles requires as input the full width half maximum time duration of the flare (i.e.
 the width of the profile in time between rising to one half of its maximum flux
 and falling back to one half of its maximum flux) and an amplitude (i.e. the
 maxmimum flux of the flare).  We model the relationship between energy, FWHM,
@@ -162,8 +162,20 @@ applies that same factor to the LSST band fluxes of the fiducial black body
 curve.  This gives us flaring light curve fluxes in all six LSST bands.  Note:
 these light curves represent the total energy output by the star in all
 directions over the sky.  In order to convert to observed fluxes, you must
-multiply by (effective area)/(4*pi*R^2) where R is the distance to the star.
+multiply by (effective area)/(4 pi R^2) where R is the distance to the star.
 The script `validate_magnitudes.py` queries one star from fatboy in each flaring
 variability class and outputs the flaring delta magnitudes into the file
 `delta_m_data.txt`.  This data can be compared to Figure 10 of Chang et al. 2015
 (ApJ 814, 35) for validation purposes.
+
+# Production
+
+The script `generate_many_light_curves.py` generates our four sample light curves
+and stores them in a `.npz` file.
+
+The script `assign_varParamStr.py` scans all of the stars in one table on fatboy
+and assigns a light curve and phase offset (in the form of a json-serialized dict
+as expected by the variability mixins in sims_catUtils) to each star.
+
+The script `assign_variability_uw.sh` runs `assign_varParamStr.py` on each MLT dwarf
+table on fatboy, assuming you are on the University of Washington campus.
