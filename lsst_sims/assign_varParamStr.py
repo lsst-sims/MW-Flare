@@ -69,7 +69,6 @@ query += 'FROM %s ' % args.table
 from mdwarf_utils import activity_type_from_color_z
 from mdwarf_utils import xyz_from_lon_lat_px
 import os
-import json
 import numpy as np
 import time
 
@@ -100,8 +99,8 @@ for data_chunk in chunk_iter:
 
     lc_indices = rng.randint(0, args.n_curves, len(data_chunk))
     offset = rng.random_sample(len(data_chunk))*3652.5
-    varParamStr_list = [json.dumps({'pars':{'lc':'%s_%d.txt' % (aa, ii), 't0': oo},
-                                    'varMethodName': 'applyMLTflaring'})
+    varParamStr_list = ['{"m": "MLT", "p":{"lc":"%s_%d", "t0": %.4f}}'
+                        % (aa, ii, oo)
                         for aa,ii,oo in zip(activity_class, lc_indices,offset)]
 
     len_str = [len(vv) for vv in varParamStr_list]
