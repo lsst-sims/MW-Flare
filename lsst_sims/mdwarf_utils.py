@@ -282,6 +282,10 @@ def duration_from_energy(energy_u, rng):
         # paragraph before Section 3
         log_eu = log_ekp + np.log10(0.65)
 
+        # all of the bins have standard deviations
+        # between 0.16 and 0.17; rather than fit this
+        # as a linear function and risk it falling off
+        # or rising up to absurd values, we fix it at 0.16
         duration_from_energy._stdev = 0.16
 
         n_data = float(len(log_eu))
@@ -366,7 +370,8 @@ def amplitude_from_fwhm_energy(t_fwhm, energy_u):
 
     Returns
     -------
-    The amplitude (in ergs/s; *not* the relative amplitude) of the flare.
+    The amplitude (in ergs/s in the Johnson U band; *not* the
+    relative amplitude) of the flare.
     """
 
     if not hasattr(amplitude_from_fwhm_energy, '_t_rise'):
@@ -603,6 +608,10 @@ def activity_type_from_color_z(r_i, i_z, z, rng):
     Find stars' activity types ('early_active', 'early_inactive',
     'mid_active', 'mid_inactive', 'late_active') from the stars'
     colors and distance from the Galactic Plane
+
+    Early spectroscopic classes are [M0-M2]
+    Mid spectroscopic classes are [M3-M5]
+    Late spectroscopic classes are anything cooler than M5
 
     Parameters
     ----------

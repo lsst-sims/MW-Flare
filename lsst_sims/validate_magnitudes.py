@@ -62,7 +62,7 @@ dd = _au_to_parsec/radiansFromArcsec(data['parallax']*0.001)
 from lsst.sims.photUtils import PhotometricParameters
 
 params = PhotometricParameters()
-flux_factor = params.effarea/np.power(dd*3.08576e16, 2)
+flux_factor = params.effarea/(4.0*np.pi*np.power(dd*3.08576e16, 2))
 types_simulated = []
 du = []
 dg = []
