@@ -62,7 +62,12 @@ dd = _au_to_parsec/radiansFromArcsec(data['parallax']*0.001)
 from lsst.sims.photUtils import PhotometricParameters
 
 params = PhotometricParameters()
-flux_factor = params.effarea/(4.0*np.pi*np.power(dd*3.08576e16, 2))
+
+# divide the effective area of the LSST mirror by the sphere
+# through which the flare is radiating (3.08576e18 is a parsec
+# in cm)
+flux_factor = params.effarea/(4.0*np.pi*np.power(dd*3.08576e18, 2))
+
 types_simulated = []
 du = []
 dg = []
@@ -97,7 +102,7 @@ for i_star in range(len(data)):
     (time,
      uflare, gflare, rflare,
      iflare, zflare, yflare,
-     tpeak) = light_curve_from_class(flare_type, 0.5, rng)
+     tpeak) = light_curve_from_class(flare_type, 2.0, rng)
 
 
     uflare *= flux_factor[i_star]
