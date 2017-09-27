@@ -435,23 +435,31 @@ def lsst_flare_fluxes_from_u(u_flux):
         exp_term = 1.0/(np.exp(exp_arg) - 1.0)
         ln_exp_term = np.log(exp_term)
 
+        # by not converting bb_wavelen to cm below, we introduce
+        # spurious powers of 10; these should not affect the results,
+        # since we are only interested in the relative factor between
+        # the flux of this raw black body spectrum and the specified
+        # flux of our flare
         log_bb_flambda = -5.0*np.log(bb_wavelen) + ln_exp_term
-        bb_flambda = np.exp(log_bb_flambda)
 
-        # Note: we are ignoring the 2*h*c^2 term, as well as all other
-        # normalization terms, because we are only interested in
-        # how the fluxes scale relatively between the 7 bands (Johnson U
-        # and the 6 LSST bands)
+        log_bb_flambda += np.log(2.0)+np.log(planck_h)+2.0*np.log(_c)
+
+        bb_flambda = np.exp(log_bb_flambda)
 
         bb_sed = Sed(wavelen=bb_wavelen, flambda=bb_flambda)
 
-        # because we are going to want to convert our light curve
-        # fluxes into magnitudes using Sed.magFromFlux(), we
-        # need to calculate these unnormalized fluxes with
-        # Sed.calcFlux() (which calculates the flux in counts
-        # through the normalized bandpass; see eqn 2.1 of
-        # the LSST Science Book)
-        lsst_flare_fluxes_from_u.johnson_u_raw_flux = bb_sed.calcFlux(johnson_u)
+        # because we have a flux in ergs/s but need a flux in
+        # the normalized units of Sed.calcFlux (see eqn 2.1
+        # of the LSST Science Book), we will calculate the
+        # ergs/s/cm^2 of a raw, unnormalized blackbody spectrum
+        # in the Johnson U band, find the factor that converts
+        # that raw flux into our specified flux, and then
+        # multiply that factor *by the fluxes calculated for the
+        # blackbody in the LSST filters using Sed.calcFlux()*.
+        # This should give us the correct normalized flux for
+        # the flares in the LSST filters.
+
+        lsst_flare_fluxes_from_u.johnson_u_raw_flux = bb_sed.calcErgs(johnson_u)
 
         lsst_bands = BandpassDict.loadTotalBandpassesFromFiles()
         norm_raw = None
