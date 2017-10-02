@@ -435,16 +435,13 @@ def lsst_flare_fluxes_from_u(u_flux):
         exp_term = 1.0/(np.exp(exp_arg) - 1.0)
         ln_exp_term = np.log(exp_term)
 
-        # by not converting bb_wavelen to cm below, we introduce
-        # spurious powers of 10; these should not affect the results,
-        # since we are only interested in the relative factor between
-        # the flux of this raw black body spectrum and the specified
-        # flux of our flare
-        log_bb_flambda = -5.0*np.log(bb_wavelen) + ln_exp_term
+        # the -7.0 np.log(10) will convert wavelen into centimeters
+        log_bb_flambda = -5.0*(np.log(bb_wavelen) - 7.0*np.log(10.0)) + ln_exp_term
 
         log_bb_flambda += np.log(2.0)+np.log(planck_h)+2.0*np.log(_c)
 
-        bb_flambda = np.exp(log_bb_flambda)
+        # thee -7.0*np.log(10.0) makes sure we get ergs/s/cm^2/nm
+        bb_flambda = np.exp(log_bb_flambda - 7.0*np.log(10))
 
         bb_sed = Sed(wavelen=bb_wavelen, flambda=bb_flambda)
 
