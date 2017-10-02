@@ -1,6 +1,7 @@
 from __future__ import with_statement
 
 import numpy as np
+import os
 
 from mdwarf_utils import light_curve_from_class
 import time
@@ -15,7 +16,7 @@ for star_class in ('early_active', 'early_inactive',
                    'mid_active', 'mid_inactive', 'late_active'):
 
     for ix in range(4):
-        tt, uu, gg, rr, ii, zz, yy, t_peak = light_curve_from_class(star_class, 10.0, rng)
+        tt, uu, gg, rr, ii, zz, yy = light_curve_from_class(star_class, 0.25, rng)
 
         tag = '%s_%d' % (star_class, ix)
         cache['%s_time' % tag] = tt
@@ -29,5 +30,7 @@ for star_class in ('early_active', 'early_inactive',
         print(star_class,ix,(time.time()-t_start)/60.0)
 
 
-with open('/astro/store/pogo4/danielsf/mlt_flares/mdwarf_flare_light_curves_170927.npz', 'wb') as file_handle:
+out_dir = os.path.join('/Users', 'danielsf', 'physics', 'lsst_160212',
+                       'Development', 'sims_catUtils', 'workspace', 'mlt', 'data')
+with open(os.path.join(out_dir, 'mdwarf_flare_light_curves_171002.npz'), 'wb') as file_handle:
     np.savez(file_handle, **cache)
