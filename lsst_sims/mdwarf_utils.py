@@ -522,7 +522,7 @@ def _generate_light_curve_params(stellar_class, years, rng):
 
     return t_peak_arr, fwhm_arr, amplitude_arr
 
-def light_curve_from_class(stellar_class, years, rng):
+def light_curve_from_class(stellar_class, years, rng, debug=False):
     """
     Simulate a flaring star light curve.
 
@@ -543,6 +543,8 @@ def light_curve_from_class(stellar_class, years, rng):
     rng is an instantiation of numpy.random.RandomState to be used
     as a random number generator
 
+    debug is a boolean that turns on some optional outputs
+
     Returns
     -------
     time is a numpy array containing the times (in days)
@@ -554,8 +556,14 @@ def light_curve_from_class(stellar_class, years, rng):
     that 10^32 ergs/s need to be added on top of the star's
     quiescent luminosity)
 
+    If debug == True:
+
     A numpy array containing the time (in days) of the flare
     peaks.
+
+    A numpy array of the amplitudes of each flare.
+
+    A numpy array of the fwhm time of each flare.
     """
 
     (t_peak_arr,
@@ -605,10 +613,16 @@ def light_curve_from_class(stellar_class, years, rng):
     print(len(u_flux),' time steps')
     print(len(np.where(u_flux>1.0e-30)[0]),' non-zero')
 
+    if not debug:
+        return (time_sec_arr/86400.0,
+                u_flux, g_flux, r_flux,
+                i_flux, z_flux, y_flux)
+
     return (time_sec_arr/86400.0,
             u_flux, g_flux, r_flux,
             i_flux, z_flux, y_flux,
-            t_peak_arr)
+            t_peak_arr, amplitude_arr,
+            fwhm_arr)
 
 
 def activity_type_from_color_z(r_i, i_z, z, rng):
