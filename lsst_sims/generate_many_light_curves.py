@@ -61,8 +61,8 @@ cache = manager.dict()
 lock = mproc.Lock()
 process_list = []
 
-for star_class in ('late_active', 'mid_active', 'early_active',
-                   'mid_inactive', 'early_inactive'):
+for star_class in ('early_active', 'early_inactive', 'mid_active',
+                   'mid_inactive', 'late_active'):
 
 
     for ix in range(4):
