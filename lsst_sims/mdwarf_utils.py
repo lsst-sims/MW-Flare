@@ -395,7 +395,7 @@ def amplitude_from_fwhm_energy(t_fwhm, energy_u):
     return amplitude
 
 
-def lsst_flare_fluxes_from_u(u_flux):
+def lsst_flare_fluxes_from_u(ju_flux):
     """
     Convert from Johnson U band flux to flux in the LSST bands
     by assuming the flare is a 9000K black body (see Section 4
@@ -480,16 +480,17 @@ def lsst_flare_fluxes_from_u(u_flux):
         print('sed johnson flux %e' % lsst_flare_fluxes_from_u.johnson_u_raw_flux)
         print('that init took %e' % (time.time()-t_start))
 
-    factor = u_flux/lsst_flare_fluxes_from_u.johnson_u_raw_flux
+    factor = ju_flux/lsst_flare_fluxes_from_u.johnson_u_raw_flux
 
-    u_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['u']
-    g_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['g']
-    r_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['r']
-    i_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['i']
-    z_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['z']
-    y_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['y']
+    u_flux_out = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['u']
+    g_flux_out = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['g']
+    r_flux_out = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['r']
+    i_flux_out = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['i']
+    z_flux_out = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['z']
+    y_flux_out = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['y']
 
-    return (u_flux, g_flux, r_flux, i_flux, z_flux, y_flux)
+    return (u_flux_out, g_flux_out, r_flux_out,
+            i_flux_out, z_flux_out, y_flux_out)
 
 
 def generate_light_curve_params(stellar_class, years, rng):
