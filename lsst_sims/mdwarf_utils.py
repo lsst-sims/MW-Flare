@@ -599,12 +599,16 @@ def light_curve_from_params(t_peak_arr, fwhm_arr, amplitude_arr, debug=False):
 
         end_time = np.log(end_target/amp)/(-0.2783)  # in units of fwhm
 
-        d_flux = np.piecewise((time_sec_arr-t_peak)/fwhm,
-                              [np.logical_and(t_peak-time_sec_arr>=0.0, t_peak-time_sec_arr<=fwhm),
-                               np.logical_and(time_sec_arr-t_peak>0.0, time_sec_arr-t_peak<=end_time*fwhm)],
-                              [_f_rise_of_t, _f_decay_of_t])
+        t_fwhm = (time_sec_arr-t_peak)/fwhm
 
-        johnson_u_flux += amp*d_flux
+        before_dex = np.where(np.logical_and(t_peak-time_sec_arr>=0.0,
+                                             t_peak-time_sec_arr<=fwhm))
+        johnson_u_flux[before_dex] += amp*_f_rise_of_t(t_fwhm[before_dex])
+
+        after_dex = np.where(np.logical_and(time_sec_arr-t_peak>0.0,
+                                            time_sec_arr-t_peak<=end_time*fwhm))
+        johnson_u_flux[after_dex] += amp*_f_decay_of_t(t_fwhm[after_dex])
+
     t_loop = time.time()-t_before_loop
 
     (u_flux, g_flux, r_flux,
