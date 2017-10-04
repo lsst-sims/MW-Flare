@@ -146,11 +146,11 @@ def _find_fudge_factor():
                 offset_flare = offset
 
 
-    print 'tau_active: %.9g; %.2e' % (tau_active, error_best_active)
-    print 'tau_flare: %.9g; %.2e' % (tau_flare, error_best_flare)
-    print 'tau_flare/tau_active: %.9g' % (tau_flare/tau_active)
-    print 'offset_active: %.9g' % offset_active
-    print 'offset_flare: %.9g' % offset_flare
+    print('tau_active: %.9g; %.2e' % (tau_active, error_best_active))
+    print('tau_flare: %.9g; %.2e' % (tau_flare, error_best_flare))
+    print('tau_flare/tau_active: %.9g' % (tau_flare/tau_active))
+    print('offset_active: %.9g' % offset_active)
+    print('offset_flare: %.9g' % offset_flare)
     return tau_flare/tau_active, tau_flare, offset_flare, tau_active, offset_active
 
 def find_fraction_flare_active(star_type, z):
