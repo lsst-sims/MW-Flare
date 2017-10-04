@@ -440,6 +440,11 @@ def lsst_flare_fluxes_from_u(u_flux):
 
         log_bb_flambda += np.log(2.0)+np.log(planck_h)+2.0*np.log(_c)
 
+        # assume these stars all have radii half that of the Sun;
+        # see Boyajian et al. 2012 (ApJ 757, 112)
+        r_sun = 6.957e10  # cm
+        log_bb_flambda += np.log(4.0*np.pi*np.pi) + 2.0*np.log(0.5*r_sun)
+
         # thee -7.0*np.log(10.0) makes sure we get ergs/s/cm^2/nm
         bb_flambda = np.exp(log_bb_flambda - 7.0*np.log(10))
 
@@ -473,7 +478,6 @@ def lsst_flare_fluxes_from_u(u_flux):
         print('sed johnson flux %e' % lsst_flare_fluxes_from_u.johnson_u_raw_flux)
 
     factor = u_flux/lsst_flare_fluxes_from_u.johnson_u_raw_flux
-    print('factor %e %e %e' % (factor.min(),np.median(factor),factor.max()))
 
     u_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['u']
     g_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['g']
