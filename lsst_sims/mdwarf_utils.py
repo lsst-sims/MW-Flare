@@ -5,6 +5,7 @@ from lsst.sims.utils import radiansFromArcsec
 from lsst.sims.photUtils import Bandpass, BandpassDict, Sed
 from lsst.utils import getPackageDir
 from fit_activity_level import find_fraction_flare_active
+import time
 
 __all__ = ["xyz_from_lon_lat_px", "prob_of_type", "draw_energies",
            "duration_from_energy", "fwhm_from_duration",
@@ -410,6 +411,7 @@ def lsst_flare_fluxes_from_u(u_flux):
     """
 
     if not hasattr(lsst_flare_fluxes_from_u, 'johnson_u_raw_flux'):
+        t_start = time.time()
         throughputs_dir = getPackageDir('throughputs')
         johnson_dir = os.path.join(throughputs_dir, 'johnson')
         johnson_u_hw = Bandpass()
@@ -476,6 +478,7 @@ def lsst_flare_fluxes_from_u(u_flux):
                 norm_raw = flux
             print('raw flux in %s = %e; %e; %e' % (band_name,flux,flux/norm_raw,bb_sed.calcErgs(bp)))
         print('sed johnson flux %e' % lsst_flare_fluxes_from_u.johnson_u_raw_flux)
+        print('that init took %e' % (time.time()-t_start))
 
     factor = u_flux/lsst_flare_fluxes_from_u.johnson_u_raw_flux
 
