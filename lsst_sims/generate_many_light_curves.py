@@ -82,6 +82,7 @@ for star_class in ('late_active', 'mid_active', 'early_active',
         if len(process_list) >= args.n_proc:
             for p in process_list:
                 p.join()
+            print('did batch in %e' % ((time.time()-t_start)/60.0))
             process_list = []
 
 for p in process_list:
