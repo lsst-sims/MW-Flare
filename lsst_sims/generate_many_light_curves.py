@@ -12,6 +12,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--out_file', type=str, default=None,
                     help='the name of the file in which to store '
                          'the output')
+paser.add_argument('--duration', type=float, default=10.0,
+                   help='the length (in years) of the light cuves '
+                        'to simulate')
 args = parser.parse_args()
 
 if args.out_file is None:
@@ -26,13 +29,11 @@ rng = np.random.RandomState(991)
 
 cache = {}
 
-duration = 10.0 # in years
-
 for star_class in ('early_active', 'early_inactive',
                    'mid_active', 'mid_inactive', 'late_active'):
 
     for ix in range(4):
-        tt, uu, gg, rr, ii, zz, yy = light_curve_from_class(star_class, duration, rng)
+        tt, uu, gg, rr, ii, zz, yy = light_curve_from_class(star_class, args.duration, rng)
 
         tag = '%s_%d' % (star_class, ix)
         cache['%s_time' % tag] = tt
