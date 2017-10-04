@@ -567,7 +567,7 @@ def light_curve_from_params(t_peak_arr, fwhm_arr, amplitude_arr, debug=False):
     A numpy array of the fwhm time of each flare.
 
     """
-
+    t_start = time.time()
     sec_per_year = 365.25*24.0*3600.0
     t_peak_sec_arr = t_peak_arr*86400.0
     fwhm_arr = fwhm_arr*60.0  # convert to seconds
@@ -594,6 +594,7 @@ def light_curve_from_params(t_peak_arr, fwhm_arr, amplitude_arr, debug=False):
 
     johnson_u_flux = np.zeros(len(time_sec_arr))
 
+    t_before_loop = time.time()
     for amp, fwhm, t_peak in zip(amplitude_arr, fwhm_arr, t_peak_sec_arr):
 
         end_time = np.log(end_target/amp)/(-0.2783)  # in units of fwhm
@@ -604,13 +605,14 @@ def light_curve_from_params(t_peak_arr, fwhm_arr, amplitude_arr, debug=False):
                               [_f_rise_of_t, _f_decay_of_t])
 
         johnson_u_flux += amp*d_flux
+    t_loop = time.time()-t_before_loop
 
     (u_flux, g_flux, r_flux,
      i_flux, z_flux, y_flux) = lsst_flare_fluxes_from_u(johnson_u_flux)
 
     print(len(u_flux),' time steps')
     print(len(np.where(u_flux>1.0e-30)[0]),' non-zero')
-
+    print('total lc %e loop %e' % ((time.time()-t_start)/60.0, t_loop/60.0))
     if not debug:
         return (time_sec_arr/86400.0,
                 u_flux, g_flux, r_flux,
