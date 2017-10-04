@@ -54,7 +54,9 @@ t_start = time.time()
 
 rng = np.random.RandomState(991)
 
-cache = {}
+manager = mproc.Manager()
+
+cache = manager.dict()
 
 lock = mproc.Lock()
 process_list = []
