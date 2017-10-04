@@ -33,16 +33,15 @@ for star_class in ('early_active', 'early_inactive',
                    'mid_active', 'mid_inactive', 'late_active'):
 
     for ix in range(4):
-        tt, uu, gg, rr, ii, zz, yy = light_curve_from_class(star_class, args.duration, rng)
-
         tag = '%s_%d' % (star_class, ix)
-        cache['%s_time' % tag] = tt
-        cache['%s_u' % tag] = uu
-        cache['%s_g' % tag] = gg
-        cache['%s_r' % tag] = rr
-        cache['%s_i' % tag] = ii
-        cache['%s_z' % tag] = zz
-        cache['%s_y' % tag] = yy
+
+        (cache['%s_time' % tag],
+         cache['%s_u' % tag],
+         cache['%s_g' % tag],
+         cache['%s_r' % tag],
+         cache['%s_i' % tag],
+         cache['%s_z' % tag],
+         cache['%s_y' % tag]) = light_curve_from_class(star_class, args.duration, rng)
 
         print(star_class,ix,(time.time()-t_start)/60.0)
 
