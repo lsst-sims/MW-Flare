@@ -12,9 +12,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--out_file', type=str, default=None,
                     help='the name of the file in which to store '
                          'the output')
-paser.add_argument('--duration', type=float, default=10.0,
-                   help='the length (in years) of the light cuves '
-                        'to simulate')
+parser.add_argument('--duration', type=float, default=10.0,
+                    help='the length (in years) of the light cuves '
+                         'to simulate')
 args = parser.parse_args()
 
 if args.out_file is None:
