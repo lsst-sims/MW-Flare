@@ -596,7 +596,7 @@ def light_curve_from_params(t_peak_arr, fwhm_arr, amplitude_arr,
         dt = dt_factor*fwhm
         if dt<15.0:
             dt = 15.0
-        local_time = list(np.arange(t_peak-1.2*fwhm, t_peak, dt))
+        local_time = list(np.arange(t_peak-1.2*fwhm, t_peak-0.1*dt, dt))
         dt = 0.5*fwhm
         if dt<15.0:
             dt = 15.0
