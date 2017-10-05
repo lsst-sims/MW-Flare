@@ -323,7 +323,8 @@ def _f_rise_of_t(t):
     Flux (in relative units) at those times
     """
 
-    return 1.0 + 1.941*t - 0.175*t*t - 2.246*t*t*t - 1.125*t*t*t*t
+    output = 1.0 + 1.941*t - 0.175*t*t - 2.246*t*t*t - 1.125*t*t*t*t
+    return np.where(output>=0.0, output, 0.0)
 
 def _f_decay_of_t(t):
     """
