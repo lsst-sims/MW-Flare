@@ -576,12 +576,12 @@ def light_curve_from_params(t_peak_arr, fwhm_arr, amplitude_arr,
 
     """
     if flux_min is not None:
-        print('input amp %d -- %e %e' % (len(amplitude_arr), amplitude_arr.min(), flux_min))
+        #print('input amp %d -- %e %e' % (len(amplitude_arr), amplitude_arr.min(), flux_min))
         valid_amp = np.where(amplitude_arr >= flux_min)
         amplitude_arr = amplitude_arr[valid_amp]
         t_peak_arr = t_peak_arr[valid_amp]
         fwhm_arr = fwhm_arr[valid_amp]
-        print('valid amp %d' % len(amplitude_arr))
+        #print('valid amp %d' % len(amplitude_arr))
 
 
     t_start = time.time()
@@ -609,10 +609,7 @@ def light_curve_from_params(t_peak_arr, fwhm_arr, amplitude_arr,
     time_sec_arr = np.unique(time_sec_arr)
     time_sec_arr = np.sort(time_sec_arr)
     diff_t = np.diff(time_sec_arr)
-    print('diff %e %e %e' % (diff_t.min(), np.median(diff_t), diff_t.max()))
-    print('gt 15 %d' % len(np.where(diff_t>15.0)[0]))
 
-    print('time steps %d' % len(time_sec_arr))
     johnson_u_flux = np.zeros(len(time_sec_arr))
 
     t_before_loop = time.time()
