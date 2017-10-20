@@ -644,7 +644,7 @@ def light_curve_from_params(t_peak_arr, fwhm_arr, amplitude_arr,
             u_flux, g_flux, r_flux,
             i_flux, z_flux, y_flux,
             t_peak_arr, amplitude_arr,
-            fwhm_arr)
+            fwhm_arr/(24.0*3600.0))
 
 
 def light_curve_from_class(stellar_class, years, rng, debug=False, flux_min=None):
