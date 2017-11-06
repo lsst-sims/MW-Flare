@@ -588,6 +588,17 @@ def light_curve_from_params(t_peak_arr, fwhm_arr, amplitude_arr,
         fwhm_arr = fwhm_arr[valid_amp]
         print('valid amp %d of %d' % (len(amplitude_arr),n0_amp))
 
+        if len(amplitude_arr) == 0:
+            if not debug:
+                return (None,
+                        None, None, None,
+                        None, None, None)
+
+            return (None,
+                    None, None, None,
+                    None, None, None,
+                    None, None, None)
+
 
     t_start = time.time()
     sec_per_year = 365.25*24.0*3600.0
