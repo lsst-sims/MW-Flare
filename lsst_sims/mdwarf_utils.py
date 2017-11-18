@@ -184,7 +184,7 @@ def draw_energies(stellar_class, duration, rng):
 
     # No obvious justification for this value;
     # it just seems reasonable
-    e_abs_max = np.power(10.0,34)
+    e_abs_max = np.power(10.0,33)
 
     total_per_hour = np.power(10.0, alpha+beta*logemin)
     total_n_flares = int(np.round(total_per_hour*duration_hours))
