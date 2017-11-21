@@ -10,7 +10,8 @@ import time
 __all__ = ["xyz_from_lon_lat_px", "prob_of_type", "draw_energies",
            "duration_from_energy", "fwhm_from_duration",
            "amplitude_from_fwhm_energy", "lsst_flare_fluxes_from_u",
-           "light_curve_from_class", "generate_light_curve_params"]
+           "light_curve_from_class", "generate_light_curve_params",
+           "get_clean_dexes"]
 
 def xyz_from_lon_lat_px(lon, lat, px):
     """
@@ -779,3 +780,75 @@ def activity_type_from_color_z(r_i, i_z, z, rng):
                     else '%s_inactive' % type_dict[name]
                     for name, dd, ff in zip(type_names, draw, frac_active)])
     return ans, type_names
+
+
+def get_clean_dexes(t_arr, f_arr, t_peak_arr, fwhm_min_arr):
+    """
+    Find the indices of a time, flux pair that are necessary
+    to interpolate flux to within 0.01
+
+    Parameters
+    ----------
+    t_arr = time array in days
+    f_arr = flux array
+    t_peak_arr = array of peaks of flares
+    fwhm_min_arr = array of fwhm time in minutes
+    """
+    # do something more rigorous with np.interp
+    fixed_dexes = []
+    fwhm_arr = fwhm_min_arr/(24.0*60.0)
+    fixed_dexes.append(0)
+    fixed_dexes.append(len(t_arr)-1)
+    for i_peak in range(len(t_peak_arr)):
+        peak_dex = np.argmin(np.abs(t_arr-t_peak_arr[i_peak]))
+        beginning_dex = np.argmin(np.abs(t_arr-t_peak_arr[i_peak]+fwhm_arr[i_peak]))
+        ending_dex = np.argmin(np.abs(t_arr-t_peak_arr[i_peak]+9.0*fwhm_arr[i_peak]))
+        fixed_dexes.append(peak_dex)
+        fixed_dexes.append(beginning_dex)
+        fixed_dexes.append(ending_dex)
+
+    median_flux = np.median(f_arr)
+    print('median %e' % median_flux)
+
+    rtol = 0.01
+    mtol = 0.001
+
+    keep_going = True
+    out_dexes = np.array(range(0,len(t_arr)))
+    while keep_going:
+        keep_going = False
+        dex_dexes = range(0,len(out_dexes),2)
+        omitted_dexes = range(1,len(out_dexes),2)
+        omitted_dexes = set(out_dexes[omitted_dexes])
+        trial_dexes = list(out_dexes[dex_dexes]) + fixed_dexes
+        trial_dexes_arr = np.sort(np.unique(np.array(trial_dexes)))
+        f_interped = np.interp(t_arr, t_arr[trial_dexes_arr], f_arr[trial_dexes_arr])
+        d_flux = np.abs(f_arr-f_interped)
+        bad_dexes = np.where(d_flux>rtol*f_arr+mtol*median_flux)
+        print('got bad_dexes %d' % len(bad_dexes[0]))
+        for dex in bad_dexes[0]:
+            if dex in omitted_dexes:
+                trial_dexes.append(dex)
+
+        trial_dexes = np.sort(np.unique(np.array(trial_dexes)))
+        if len(trial_dexes) < len(out_dexes):
+            keep_going = True
+        out_dexes = trial_dexes
+        print('keeping %d of %d -- %d' % (len(out_dexes),len(t_arr),len(t_peak_arr)))
+
+    final_pass = True
+    while final_pass:
+        f_interped = np.interp(t_arr,t_arr[out_dexes],f_arr[out_dexes])
+        d_flux = np.abs(f_arr-f_interped)
+        bad_dexes = np.where(d_flux>rtol*f_arr+mtol*median_flux)
+        print('bad dexes %d' % len(bad_dexes[0]))
+        out_dexes = list(out_dexes)
+        if len(bad_dexes[0])==0:
+            final_pass = False
+        for dex in bad_dexes[0]:
+            out_dexes.append(dex)
+        out_dexes = np.sort(np.unique(np.array(out_dexes)))
+
+    print('keeping %d of %d -- %d' % (len(out_dexes),len(t_arr),len(t_peak_arr)))
+
+    return out_dexes

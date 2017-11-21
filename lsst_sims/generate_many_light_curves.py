@@ -5,70 +5,12 @@ import os
 
 from mdwarf_utils import light_curve_from_params, generate_light_curve_params
 from mdwarf_utils import light_curve_from_class
+from mdwarf_utils import get_clean_dexes
 import time
 
 import multiprocessing as mproc
 
 import argparse
-
-def get_clean_dexes(t_arr, f_arr, t_peak_arr, fwhm_min_arr):
-    # do something more rigorous with np.interp
-    fixed_dexes = []
-    fwhm_arr = fwhm_min_arr/(24.0*60.0)
-    fixed_dexes.append(0)
-    fixed_dexes.append(len(t_arr)-1)
-    for i_peak in range(len(t_peak_arr)):
-        peak_dex = np.argmin(np.abs(t_arr-t_peak_arr[i_peak]))
-        beginning_dex = np.argmin(np.abs(t_arr-t_peak_arr[i_peak]+fwhm_arr[i_peak]))
-        ending_dex = np.argmin(np.abs(t_arr-t_peak_arr[i_peak]+9.0*fwhm_arr[i_peak]))
-        fixed_dexes.append(peak_dex)
-        fixed_dexes.append(beginning_dex)
-        fixed_dexes.append(ending_dex)
-
-    median_flux = np.median(f_arr)
-    print('median %e' % median_flux)
-
-    rtol = 0.01
-    mtol = 0.001
-
-    keep_going = True
-    out_dexes = np.array(range(0,len(t_arr)))
-    while keep_going:
-        keep_going = False
-        dex_dexes = range(0,len(out_dexes),2)
-        omitted_dexes = range(1,len(out_dexes),2)
-        omitted_dexes = out_dexes[omitted_dexes]
-        trial_dexes = list(out_dexes[dex_dexes]) + fixed_dexes
-        trial_dexes_arr = np.sort(np.unique(np.array(trial_dexes)))
-        f_interped = np.interp(t_arr, t_arr[trial_dexes_arr], f_arr[trial_dexes_arr])
-        d_flux = np.abs(f_arr-f_interped)
-        bad_dexes = np.where(d_flux>rtol*f_arr+mtol*median_flux)
-        for dex in bad_dexes[0]:
-            if dex in omitted_dexes:
-                trial_dexes.append(dex)
-
-        trial_dexes = np.sort(np.unique(np.array(trial_dexes)))
-        if len(trial_dexes) < len(out_dexes):
-            keep_going = True
-        out_dexes = trial_dexes
-        print('keeping %d of %d -- %d' % (len(out_dexes),len(t_arr),len(t_peak_arr)))
-
-    final_pass = True
-    while final_pass:
-        f_interped = np.interp(t_arr,t_arr[out_dexes],f_arr[out_dexes])
-        d_flux = np.abs(f_arr-f_interped)
-        bad_dexes = np.where(d_flux>rtol*f_arr+mtol*median_flux)
-        print('bad dexes %d' % len(bad_dexes[0]))
-        out_dexes = list(out_dexes)
-        if len(bad_dexes[0])==0:
-            final_pass = False
-        for dex in bad_dexes[0]:
-            out_dexes.append(dex)
-        out_dexes = np.sort(np.unique(np.array(out_dexes)))
-
-    print('keeping %d of %d -- %d' % (len(out_dexes),len(t_arr),len(t_peak_arr)))
-
-    return out_dexes
 
 
 def cache_lc(t_peak_arr=None, fwhm_arr=None, amp_arr=None,
