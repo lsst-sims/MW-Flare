@@ -825,7 +825,6 @@ def get_clean_dexes(t_arr, f_arr, t_peak_arr, fwhm_min_arr):
         f_interped = np.interp(t_arr, t_arr[trial_dexes_arr], f_arr[trial_dexes_arr])
         d_flux = np.abs(f_arr-f_interped)
         bad_dexes = np.where(d_flux>rtol*f_arr+mtol*median_flux)
-        print('got bad_dexes %d' % len(bad_dexes[0]))
         for dex in bad_dexes[0]:
             if dex in omitted_dexes:
                 trial_dexes.append(dex)
