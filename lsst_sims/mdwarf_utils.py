@@ -5,11 +5,13 @@ from lsst.sims.utils import radiansFromArcsec
 from lsst.sims.photUtils import Bandpass, BandpassDict, Sed
 from lsst.utils import getPackageDir
 from fit_activity_level import find_fraction_flare_active
+import time
 
 __all__ = ["xyz_from_lon_lat_px", "prob_of_type", "draw_energies",
            "duration_from_energy", "fwhm_from_duration",
            "amplitude_from_fwhm_energy", "lsst_flare_fluxes_from_u",
-           "light_curve_from_class"]
+           "light_curve_from_class", "generate_light_curve_params",
+           "get_clean_dexes"]
 
 def xyz_from_lon_lat_px(lon, lat, px):
     """
@@ -183,7 +185,7 @@ def draw_energies(stellar_class, duration, rng):
 
     # No obvious justification for this value;
     # it just seems reasonable
-    e_abs_max = np.power(10.0,34)
+    e_abs_max = np.power(10.0,33)
 
     total_per_hour = np.power(10.0, alpha+beta*logemin)
     total_n_flares = int(np.round(total_per_hour*duration_hours))
@@ -322,7 +324,8 @@ def _f_rise_of_t(t):
     Flux (in relative units) at those times
     """
 
-    return 1.0 + 1.941*t - 0.175*t*t - 2.246*t*t*t - 1.125*t*t*t*t
+    output = 1.0 + 1.941*t - 0.175*t*t - 2.246*t*t*t - 1.125*t*t*t*t
+    return np.where(output>=0.0, output, 0.0)
 
 def _f_decay_of_t(t):
     """
@@ -394,7 +397,7 @@ def amplitude_from_fwhm_energy(t_fwhm, energy_u):
     return amplitude
 
 
-def lsst_flare_fluxes_from_u(u_flux):
+def lsst_flare_fluxes_from_u(ju_flux):
     """
     Convert from Johnson U band flux to flux in the LSST bands
     by assuming the flare is a 9000K black body (see Section 4
@@ -410,6 +413,7 @@ def lsst_flare_fluxes_from_u(u_flux):
     """
 
     if not hasattr(lsst_flare_fluxes_from_u, 'johnson_u_raw_flux'):
+        t_start = time.time()
         throughputs_dir = getPackageDir('throughputs')
         johnson_dir = os.path.join(throughputs_dir, 'johnson')
         johnson_u_hw = Bandpass()
@@ -435,23 +439,33 @@ def lsst_flare_fluxes_from_u(u_flux):
         exp_term = 1.0/(np.exp(exp_arg) - 1.0)
         ln_exp_term = np.log(exp_term)
 
-        log_bb_flambda = -5.0*np.log(bb_wavelen) + ln_exp_term
-        bb_flambda = np.exp(log_bb_flambda)
+        # the -7.0 np.log(10) will convert wavelen into centimeters
+        log_bb_flambda = -5.0*(np.log(bb_wavelen) - 7.0*np.log(10.0)) + ln_exp_term
 
-        # Note: we are ignoring the 2*h*c^2 term, as well as all other
-        # normalization terms, because we are only interested in
-        # how the fluxes scale relatively between the 7 bands (Johnson U
-        # and the 6 LSST bands)
+        log_bb_flambda += np.log(2.0)+np.log(planck_h)+2.0*np.log(_c)
+
+        # assume these stars all have radii half that of the Sun;
+        # see Boyajian et al. 2012 (ApJ 757, 112)
+        r_sun = 6.957e10  # cm
+        log_bb_flambda += np.log(4.0*np.pi*np.pi) + 2.0*np.log(0.5*r_sun)
+
+        # thee -7.0*np.log(10.0) makes sure we get ergs/s/cm^2/nm
+        bb_flambda = np.exp(log_bb_flambda - 7.0*np.log(10))
 
         bb_sed = Sed(wavelen=bb_wavelen, flambda=bb_flambda)
 
-        # because we are going to want to convert our light curve
-        # fluxes into magnitudes using Sed.magFromFlux(), we
-        # need to calculate these unnormalized fluxes with
-        # Sed.calcFlux() (which calculates the flux in counts
-        # through the normalized bandpass; see eqn 2.1 of
-        # the LSST Science Book)
-        lsst_flare_fluxes_from_u.johnson_u_raw_flux = bb_sed.calcFlux(johnson_u)
+        # because we have a flux in ergs/s but need a flux in
+        # the normalized units of Sed.calcFlux (see eqn 2.1
+        # of the LSST Science Book), we will calculate the
+        # ergs/s/cm^2 of a raw, unnormalized blackbody spectrum
+        # in the Johnson U band, find the factor that converts
+        # that raw flux into our specified flux, and then
+        # multiply that factor *by the fluxes calculated for the
+        # blackbody in the LSST filters using Sed.calcFlux()*.
+        # This should give us the correct normalized flux for
+        # the flares in the LSST filters.
+
+        lsst_flare_fluxes_from_u.johnson_u_raw_flux = bb_sed.calcErgs(johnson_u)
 
         lsst_bands = BandpassDict.loadTotalBandpassesFromFiles()
         norm_raw = None
@@ -464,22 +478,24 @@ def lsst_flare_fluxes_from_u(u_flux):
             lsst_flare_fluxes_from_u.lsst_raw_flux_dict[band_name] = flux
             if norm_raw is None:
                 norm_raw = flux
-            print 'raw flux in %s = %e; %e' % (band_name,flux,flux/norm_raw)
-        print 'sed johnson flux %e' % lsst_flare_fluxes_from_u.johnson_u_raw_flux
+            print('raw flux in %s = %e; %e; %e' % (band_name,flux,flux/norm_raw,bb_sed.calcErgs(bp)))
+        print('sed johnson flux %e' % lsst_flare_fluxes_from_u.johnson_u_raw_flux)
+        print('that init took %e' % (time.time()-t_start))
 
-    factor = u_flux/lsst_flare_fluxes_from_u.johnson_u_raw_flux
+    factor = ju_flux/lsst_flare_fluxes_from_u.johnson_u_raw_flux
 
-    u_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['u']
-    g_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['g']
-    r_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['r']
-    i_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['i']
-    z_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['z']
-    y_flux = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['y']
+    u_flux_out = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['u']
+    g_flux_out = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['g']
+    r_flux_out = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['r']
+    i_flux_out = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['i']
+    z_flux_out = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['z']
+    y_flux_out = factor*lsst_flare_fluxes_from_u.lsst_raw_flux_dict['y']
 
-    return (u_flux, g_flux, r_flux, i_flux, z_flux, y_flux)
+    return (u_flux_out, g_flux_out, r_flux_out,
+            i_flux_out, z_flux_out, y_flux_out)
 
 
-def _generate_light_curve_params(stellar_class, years, rng):
+def generate_light_curve_params(stellar_class, years, rng):
     """
     Find the times, FWHM, and amplitudes of the flares for a given
     star over a period of time.
@@ -514,7 +530,146 @@ def _generate_light_curve_params(stellar_class, years, rng):
 
     return t_peak_arr, fwhm_arr, amplitude_arr
 
-def light_curve_from_class(stellar_class, years, rng):
+
+def light_curve_from_params(t_peak_arr, fwhm_arr, amplitude_arr,
+                            debug=False, flux_min=None,
+                            end_time_factor=0.001,
+                            dt_factor=0.1,
+                            template_times=None):
+    """
+    Take the parameters generated by generate_light_curve_params
+    and turn them into light curves.
+
+    This method draws heavily from the methods in aflare.py and
+    flare_prob.py in https://github.com/jradavenport/MW-Flare
+
+    Parameters
+    ----------
+    t_peak_arr is the array of peak times returned by generate_light_curve_params
+
+    fwhm_arr is the array of fwhm times from generate_light_curve_params
+
+    amplitude_arr is the array of amplitudes from generate_light_curve_params
+
+    debug is a boolean that turns on some optional outputs
+
+    flux_min is the minimum flux in ergs/s (over all 4pi steradians)
+    that a flare must achieve in order to be included
+
+    template_times is an optional list of times (in days) when fluxes
+    must be output
+
+    Returns
+    -------
+    time is a numpy array containing the times (in days)
+    corresponding to the flux
+
+    [u,g,r,i,z,y]_flux are numpy arrays containing the fluxes
+    in ergs/s in each of the LSST bands (0 flux means the star
+    is radiating at its quiescent luminosity; 10^32 ergs/s means
+    that 10^32 ergs/s need to be added on top of the star's
+    quiescent luminosity)
+
+    If debug == True:
+
+    A numpy array containing the time (in days) of the flare
+    peaks.
+
+    A numpy array of the amplitudes of each flare.
+
+    A numpy array of the fwhm time of each flare.
+
+    """
+    if flux_min is not None:
+        n0_amp = len(amplitude_arr)
+        #print('input amp %d -- %e %e' % (len(amplitude_arr), amplitude_arr.min(), flux_min))
+        valid_amp = np.where(amplitude_arr >= flux_min)
+        amplitude_arr = amplitude_arr[valid_amp]
+        t_peak_arr = t_peak_arr[valid_amp]
+        fwhm_arr = fwhm_arr[valid_amp]
+        print('valid amp %d of %d' % (len(amplitude_arr),n0_amp))
+
+        if len(amplitude_arr) == 0:
+            if not debug:
+                return (None,
+                        None, None, None,
+                        None, None, None)
+
+            return (None,
+                    None, None, None,
+                    None, None, None,
+                    None, None, None)
+
+
+    t_start = time.time()
+    sec_per_year = 365.25*24.0*3600.0
+    t_peak_sec_arr = t_peak_arr*86400.0
+    fwhm_arr = fwhm_arr*60.0  # convert to seconds
+
+    time_sec_arr = None
+    if template_times is not None:
+        time_sec_arr = []
+        for tt in template_times:
+            time_sec_arr.append(tt*86400.0)
+
+    end_target = end_time_factor*amplitude_arr.min()  # the flux at which a flare is over
+    for t_peak, fwhm, amp in zip(t_peak_sec_arr, fwhm_arr, amplitude_arr):
+        end_time = np.log(end_target/amp)/(-0.2783)  # in units of fwhm
+        dt = dt_factor*fwhm
+        if dt<15.0:
+            dt = 15.0
+        local_time = list(np.arange(t_peak-1.2*fwhm, t_peak-0.1*dt, dt))
+        dt = 0.5*fwhm
+        if dt<15.0:
+            dt = 15.0
+        local_time += list(np.arange(t_peak, t_peak+end_time*fwhm, dt))
+        if time_sec_arr is None:
+            time_sec_arr = local_time
+        else:
+            time_sec_arr += local_time
+
+    time_sec_arr = np.unique(time_sec_arr)
+    time_sec_arr = np.sort(time_sec_arr)
+    diff_t = np.diff(time_sec_arr)
+
+    johnson_u_flux = np.zeros(len(time_sec_arr))
+
+    t_before_loop = time.time()
+    for amp, fwhm, t_peak in zip(amplitude_arr, fwhm_arr, t_peak_sec_arr):
+
+        end_time = np.log(end_target/amp)/(-0.2783)  # in units of fwhm
+
+        t_fwhm = (time_sec_arr-t_peak)/fwhm
+
+        before_dex = np.where(np.logical_and(t_peak-time_sec_arr>=0.0,
+                                             t_peak-time_sec_arr<=fwhm))
+        johnson_u_flux[before_dex] += amp*_f_rise_of_t(t_fwhm[before_dex])
+
+        after_dex = np.where(np.logical_and(time_sec_arr-t_peak>0.0,
+                                            time_sec_arr-t_peak<=end_time*fwhm))
+        johnson_u_flux[after_dex] += amp*_f_decay_of_t(t_fwhm[after_dex])
+
+    t_loop = time.time()-t_before_loop
+
+    (u_flux, g_flux, r_flux,
+     i_flux, z_flux, y_flux) = lsst_flare_fluxes_from_u(johnson_u_flux)
+
+    print(len(u_flux),' time steps')
+    print(len(np.where(u_flux>1.0e-30)[0]),' non-zero')
+    print('total lc %e loop %e' % ((time.time()-t_start)/60.0, t_loop/60.0))
+    if not debug:
+        return (time_sec_arr/86400.0,
+                u_flux, g_flux, r_flux,
+                i_flux, z_flux, y_flux)
+
+    return (time_sec_arr/86400.0,
+            u_flux, g_flux, r_flux,
+            i_flux, z_flux, y_flux,
+            t_peak_arr, amplitude_arr,
+            fwhm_arr/(24.0*3600.0))
+
+
+def light_curve_from_class(stellar_class, years, rng, debug=False, flux_min=None):
     """
     Simulate a flaring star light curve.
 
@@ -535,6 +690,13 @@ def light_curve_from_class(stellar_class, years, rng):
     rng is an instantiation of numpy.random.RandomState to be used
     as a random number generator
 
+    debug is a boolean that turns on some optional outputs
+
+    lock is an optional multiprocessing lock
+
+    flux_min is the minimum flux in ergs/s (over all 4pi steradians)
+    that a flare must achieve in order to be included
+
     Returns
     -------
     time is a numpy array containing the times (in days)
@@ -546,61 +708,22 @@ def light_curve_from_class(stellar_class, years, rng):
     that 10^32 ergs/s need to be added on top of the star's
     quiescent luminosity)
 
+    If debug == True:
+
     A numpy array containing the time (in days) of the flare
     peaks.
+
+    A numpy array of the amplitudes of each flare.
+
+    A numpy array of the fwhm time of each flare.
     """
 
     (t_peak_arr,
      fwhm_arr,
-     amplitude_arr) = _generate_light_curve_params(stellar_class, years, rng)
+     amplitude_arr) = generate_light_curve_params(stellar_class, years, rng)
 
-    sec_per_year = 365.25*24.0*3600.0
-    t_peak_sec_arr = t_peak_arr*86400.0
-    fwhm_arr = fwhm_arr*60.0  # convert to seconds
-
-    time_sec_arr = None
-    end_target = 1.0e-3*amplitude_arr.min()  # the flux at which a flare is over
-    for t_peak, fwhm, amp in zip(t_peak_sec_arr, fwhm_arr, amplitude_arr):
-        end_time = np.log(end_target/amp)/(-0.2783)  # in units of fwhm
-        dt = 0.1*fwhm
-        if dt<15.0:
-            dt = 15.0
-        local_time = list(np.arange(t_peak-1.2*fwhm, t_peak, dt))
-        dt = 0.5*fwhm
-        if dt<15.0:
-            dt = 15.0
-        local_time += list(np.arange(t_peak, t_peak+end_time*fwhm, dt))
-        if time_sec_arr is None:
-            time_sec_arr = local_time
-        else:
-            time_sec_arr += local_time
-
-    time_sec_arr = np.unique(time_sec_arr)
-    time_sec_arr = np.sort(time_sec_arr)
-
-    johnson_u_flux = np.zeros(len(time_sec_arr))
-
-    for amp, fwhm, t_peak in zip(amplitude_arr, fwhm_arr, t_peak_sec_arr):
-
-        end_time = np.log(end_target/amp)/(-0.2783)  # in units of fwhm
-
-        d_flux = np.piecewise((time_sec_arr-t_peak)/fwhm,
-                              [np.logical_and(t_peak-time_sec_arr>=0.0, t_peak-time_sec_arr<=fwhm),
-                               np.logical_and(time_sec_arr-t_peak>0.0, time_sec_arr-t_peak<=end_time*fwhm)],
-                              [_f_rise_of_t, _f_decay_of_t])
-
-        johnson_u_flux += amp*d_flux
-
-    (u_flux, g_flux, r_flux,
-     i_flux, z_flux, y_flux) = lsst_flare_fluxes_from_u(johnson_u_flux)
-
-    print(len(u_flux),' time steps')
-    print(len(np.where(u_flux>1.0e-30)[0]),' non-zero')
-
-    return (time_sec_arr/86400.0,
-            u_flux, g_flux, r_flux,
-            i_flux, z_flux, y_flux,
-            t_peak_arr)
+    return light_curve_from_params(t_peak_arr, fwhm_arr, amplitude_arr,
+                                   debug=debug, flux_min=flux_min)
 
 
 def activity_type_from_color_z(r_i, i_z, z, rng):
@@ -657,3 +780,74 @@ def activity_type_from_color_z(r_i, i_z, z, rng):
                     else '%s_inactive' % type_dict[name]
                     for name, dd, ff in zip(type_names, draw, frac_active)])
     return ans, type_names
+
+
+def get_clean_dexes(t_arr, f_arr, t_peak_arr, fwhm_min_arr):
+    """
+    Find the indices of a time, flux pair that are necessary
+    to interpolate flux to within 0.01
+
+    Parameters
+    ----------
+    t_arr = time array in days
+    f_arr = flux array
+    t_peak_arr = array of peaks of flares
+    fwhm_min_arr = array of fwhm time in minutes
+    """
+    # do something more rigorous with np.interp
+    fixed_dexes = []
+    fwhm_arr = fwhm_min_arr/(24.0*60.0)
+    fixed_dexes.append(0)
+    fixed_dexes.append(len(t_arr)-1)
+    for i_peak in range(len(t_peak_arr)):
+        peak_dex = np.argmin(np.abs(t_arr-t_peak_arr[i_peak]))
+        beginning_dex = np.argmin(np.abs(t_arr-t_peak_arr[i_peak]+fwhm_arr[i_peak]))
+        ending_dex = np.argmin(np.abs(t_arr-t_peak_arr[i_peak]+9.0*fwhm_arr[i_peak]))
+        fixed_dexes.append(peak_dex)
+        fixed_dexes.append(beginning_dex)
+        fixed_dexes.append(ending_dex)
+
+    median_flux = np.median(f_arr)
+    print('median %e' % median_flux)
+
+    rtol = 0.01
+    mtol = 0.001
+
+    keep_going = True
+    out_dexes = np.array(range(0,len(t_arr)))
+    while keep_going:
+        keep_going = False
+        dex_dexes = range(0,len(out_dexes),2)
+        omitted_dexes = range(1,len(out_dexes),2)
+        omitted_dexes = set(out_dexes[omitted_dexes])
+        trial_dexes = list(out_dexes[dex_dexes]) + fixed_dexes
+        trial_dexes_arr = np.sort(np.unique(np.array(trial_dexes)))
+        f_interped = np.interp(t_arr, t_arr[trial_dexes_arr], f_arr[trial_dexes_arr])
+        d_flux = np.abs(f_arr-f_interped)
+        bad_dexes = np.where(d_flux>rtol*f_arr+mtol*median_flux)
+        for dex in bad_dexes[0]:
+            if dex in omitted_dexes:
+                trial_dexes.append(dex)
+
+        trial_dexes = np.sort(np.unique(np.array(trial_dexes)))
+        if len(trial_dexes) < len(out_dexes):
+            keep_going = True
+        out_dexes = trial_dexes
+        print('keeping %d of %d -- %d' % (len(out_dexes),len(t_arr),len(t_peak_arr)))
+
+    final_pass = True
+    while final_pass:
+        f_interped = np.interp(t_arr,t_arr[out_dexes],f_arr[out_dexes])
+        d_flux = np.abs(f_arr-f_interped)
+        bad_dexes = np.where(d_flux>rtol*f_arr+mtol*median_flux)
+        print('bad dexes %d' % len(bad_dexes[0]))
+        out_dexes = list(out_dexes)
+        if len(bad_dexes[0])==0:
+            final_pass = False
+        for dex in bad_dexes[0]:
+            out_dexes.append(dex)
+        out_dexes = np.sort(np.unique(np.array(out_dexes)))
+
+    print('keeping %d of %d -- %d' % (len(out_dexes),len(t_arr),len(t_peak_arr)))
+
+    return out_dexes
